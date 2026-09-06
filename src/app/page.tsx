@@ -1,69 +1,58 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { PrismaClient } from '@prisma/client';
+import Link from 'next/link';
 
-export default function Home() {
+const prisma = new PrismaClient();
+
+// Prevent static rendering since feed should be dynamic
+export const dynamic = 'force-dynamic'; 
+
+export default async function Home() {
+  const posts = await prisma.post.findMany({
+    where: { status: 'PUBLISHED' },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      author: {
+        select: { name: true, email: true }
+      },
+      _count: {
+        select: { likes: true, comments: true }
+      }
+    }
+  });
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+        <h1>Blog Application</h1>
+        <nav>
+          <Link href="/login" style={{ marginRight: '15px' }}>Login</Link>
+          <Link href="/signup">Sign Up</Link>
+        </nav>
+      </header>
+
+      <section>
+        {posts.length === 0 ? (
+          <p>No posts published yet.</p>
+        ) : (
+          posts.map(post => (
+            <article key={post.id} style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
+              <h2>{post.title}</h2>
+              <p style={{ color: '#555', fontSize: '0.9em' }}>
+                By {post.author.name || post.author.email} on {post.createdAt.toLocaleDateString()}
+              </p>
+              
+              <div style={{ margin: '20px 0', lineHeight: '1.6' }}>
+                {post.body}
+              </div>
+              
+              <div style={{ display: 'flex', gap: '15px', color: '#666', fontSize: '0.9em' }}>
+                <span>❤️ {post._count.likes} Likes</span>
+                <span>💬 {post._count.comments} Comments</span>
+              </div>
+            </article>
+          ))
+        )}
+      </section>
+    </main>
   );
 }
