@@ -60,8 +60,10 @@ export default async function Home() {
           {session ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
               <span>Welcome, {session.user?.name || session.user?.email}</span>
+              <Link href="/posts/new" className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '0.9rem' }}>Write Post</Link>
+              <Link href="/my-posts" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.9rem' }}>My Posts</Link>
               {session.user?.role === 'ADMIN' && (
-                <Link href="/admin" className="btn btn-secondary">Dashboard</Link>
+                <Link href="/admin" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.9rem' }}>Dashboard</Link>
               )}
             </div>
           ) : (
@@ -92,6 +94,12 @@ export default async function Home() {
                 }} 
                 initialLiked={!!initialLiked}
                 userAuthenticated={!!session}
+                currentUser={session?.user ? {
+                  id: (session.user as any).id,
+                  name: session.user.name,
+                  email: session.user.email || '',
+                  role: (session.user as any).role || 'READER'
+                } : null}
               />
             );
           })
