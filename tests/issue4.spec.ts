@@ -58,11 +58,15 @@ test.describe('Issue #4: Admin Dashboard', () => {
     console.log('Login status:', loginRes.status())
     console.log('Login response:', await loginRes.text())
     // Setup dummy data: Create an author, a category, and a post via Prisma to test post deletion
+    await prisma.post.deleteMany({ where: { title: 'Test Post for Admin Deletion' } });
+    await prisma.user.deleteMany({ where: { email: 'author_issue4_test@example.com' } });
     const author = await prisma.user.create({
-      data: { email: 'author_test@example.com', password_hash: 'dummy', name: 'Test Author', role: 'READER' }
+      data: { email: 'author_issue4_test@example.com', password_hash: 'dummy', name: 'Test Author', role: 'READER' }
     });
-    const category = await prisma.category.create({
-      data: { name: 'Seed Category' }
+    const category = await prisma.category.upsert({
+      where: { name: 'Seed Category' },
+      update: {},
+      create: { name: 'Seed Category' }
     });
     const post = await prisma.post.create({
       data: { title: 'Test Post for Admin Deletion', body: 'Content', authorId: author.id, categoryId: category.id, status: 'PUBLISHED' }
