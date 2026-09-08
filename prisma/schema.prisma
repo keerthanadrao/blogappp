@@ -67,3 +67,14 @@ model Like {
 
   @@id([postId, userId])
 }
+
+model PasswordResetOtp {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}

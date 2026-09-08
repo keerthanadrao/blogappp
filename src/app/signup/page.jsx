@@ -1,16 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
-export default function SignupPage() {
+function SignupForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const initialRole = searchParams.get('role') === 'admin' ? 'admin' : 'reader';
 
+    const [role, setRole] = useState(initialRole);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [secretKey, setSecretKey] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (searchParams.get('role') === 'admin') {
+            setRole('admin');
+        }
+    }, [searchParams]);
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -18,12 +29,17 @@ export default function SignupPage() {
         setLoading(true);
 
         try {
-            const response = await fetch("/api/auth/register", {
+            const endpoint = role === 'admin' ? "/api/auth/admin-register" : "/api/auth/register";
+            const payload = role === 'admin' 
+                ? { name, email, password, secretKey } 
+                : { name, email, password };
+
+            const response = await fetch(endpoint, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ name, email, password }),
+                body: JSON.stringify(payload),
             });
 
             const data = await response.json();
@@ -33,7 +49,7 @@ export default function SignupPage() {
                 return;
             }
 
-            router.push("/login");
+            router.push(role === 'admin' ? "/login?role=admin" : "/login");
         } catch {
             setError("Something went wrong. Please try again.");
         } finally {
@@ -42,74 +58,203 @@ export default function SignupPage() {
     }
 
     return (
-        <main className="min-h-screen flex items-center justify-center px-4">
-            <div className="w-full max-w-md rounded-lg border p-6 shadow-sm">
-                <h1 className="text-2xl font-bold mb-6 text-center">
-                    Create Account
+        <div className="card" style={{ 
+            width: '100%', 
+            maxWidth: '460px', 
+            padding: 'var(--space-6)',
+            border: role === 'admin' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
+            boxShadow: role === 'admin' ? '0 8px 32px rgba(239, 68, 68, 0.15)' : '0 8px 32px rgba(0, 0, 0, 0.5)'
+        }}>
+            <div style={{ textAlign: 'center', marginBottom: 'var(--space-5)' }}>
+                <Link href="/" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                    ← Back to Blog
+                </Link>
+                <h1 style={{ 
+                    fontSize: '2.2rem', 
+                    marginTop: 'var(--space-2)',
+                    background: role === 'admin' 
+                        ? 'linear-gradient(to right, #ef4444, #f97316)' 
+                        : 'linear-gradient(to right, var(--primary), #a855f7)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                }}>
+                    {role === 'admin' ? 'Admin Registration' : 'Create Account'}
                 </h1>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label htmlFor="name" className="block mb-1 font-medium">
-                            Name
-                        </label>
-                        <input
-                            id="name"
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className="w-full rounded-md border px-3 py-2"
-                            placeholder="Enter your name"
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="email" className="block mb-1 font-medium">
-                            Email
-                        </label>
-                        <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="w-full rounded-md border px-3 py-2"
-                            placeholder="Enter your email"
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="password" className="block mb-1 font-medium">
-                            Password
-                        </label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            minLength={6}
-                            className="w-full rounded-md border px-3 py-2"
-                            placeholder="Enter your password"
-                        />
-                    </div>
-
-                    {error && (
-                        <p className="text-sm text-red-600">
-                            {error}
-                        </p>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
-                    >
-                        {loading ? "Creating Account..." : "Sign Up"}
-                    </button>
-                </form>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginTop: 'var(--space-1)' }}>
+                    {role === 'admin' 
+                        ? 'Register an administrator account with security key' 
+                        : 'Join the community to write and engage with posts'}
+                </p>
             </div>
+
+            {/* Account Type Tabs */}
+            <div style={{ 
+                display: 'flex', 
+                borderRadius: 'var(--radius-md)', 
+                background: 'var(--bg-color)', 
+                padding: '4px', 
+                marginBottom: 'var(--space-5)',
+                border: '1px solid var(--border-color)'
+            }}>
+                <button
+                    type="button"
+                    onClick={() => { setRole('reader'); setError(''); }}
+                    style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: 'none',
+                        background: role === 'reader' ? 'var(--primary)' : 'transparent',
+                        color: role === 'reader' ? '#ffffff' : 'var(--text-secondary)',
+                        fontWeight: 600,
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-fast)'
+                    }}
+                >
+                    Author / Reader
+                </button>
+                <button
+                    type="button"
+                    onClick={() => { setRole('admin'); setError(''); }}
+                    style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: 'none',
+                        background: role === 'admin' ? 'var(--danger)' : 'transparent',
+                        color: role === 'admin' ? '#ffffff' : 'var(--text-secondary)',
+                        fontWeight: 600,
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-fast)'
+                    }}
+                >
+                    🛡️ Admin
+                </button>
+            </div>
+
+            {error && (
+                <div style={{
+                    padding: 'var(--space-3)',
+                    marginBottom: 'var(--space-4)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid var(--danger)',
+                    borderRadius: 'var(--radius-md)',
+                    color: '#fca5a5',
+                    fontSize: '0.9rem',
+                    textAlign: 'center'
+                }}>
+                    {error}
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                <div>
+                    <label htmlFor="name" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 500 }}>
+                        Full Name
+                    </label>
+                    <input
+                        id="name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        placeholder="Enter your name"
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="email" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 500 }}>
+                        Email Address
+                    </label>
+                    <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        placeholder="you@example.com"
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="password" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 500 }}>
+                        Password
+                    </label>
+                    <input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        placeholder="Choose a secure password"
+                    />
+                </div>
+
+                {role === 'admin' && (
+                    <div>
+                        <label htmlFor="secretKey" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 500, color: '#fca5a5' }}>
+                            Admin Secret Key <span style={{ color: 'var(--danger)' }}>*</span>
+                        </label>
+                        <input
+                            id="secretKey"
+                            type="password"
+                            value={secretKey}
+                            onChange={(e) => setSecretKey(e.target.value)}
+                            required
+                            placeholder="Enter admin registration secret"
+                            style={{ borderColor: 'rgba(239, 68, 68, 0.5)' }}
+                        />
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px', display: 'block' }}>
+                            Required for elevated administrative role.
+                        </span>
+                    </div>
+                )}
+
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className={role === 'admin' ? "btn btn-danger" : "btn btn-primary"}
+                    style={{ 
+                        width: '100%', 
+                        padding: '12px', 
+                        marginTop: 'var(--space-2)',
+                        fontWeight: 600,
+                        fontSize: '1rem'
+                    }}
+                >
+                    {loading ? "Creating Account..." : role === 'admin' ? "Create Admin Account" : "Sign Up"}
+                </button>
+            </form>
+
+            <div style={{ textAlign: 'center', marginTop: 'var(--space-5)', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                Already have an account?{" "}
+                <Link 
+                    href={role === 'admin' ? "/login?role=admin" : "/login"} 
+                    style={{ color: role === 'admin' ? 'var(--danger)' : 'var(--primary)', fontWeight: 600 }}
+                >
+                    Sign In here
+                </Link>
+            </div>
+        </div>
+    );
+}
+
+export default function SignupPage() {
+    return (
+        <main style={{ 
+            minHeight: '100vh', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            padding: 'var(--space-4)',
+            background: 'radial-gradient(ellipse at top, #1e1b4b 0%, #09090b 70%)'
+        }}>
+            <Suspense fallback={<div style={{ color: 'var(--text-secondary)' }}>Loading...</div>}>
+                <SignupForm />
+            </Suspense>
         </main>
     );
-} 
+}

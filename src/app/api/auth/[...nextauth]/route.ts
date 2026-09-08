@@ -73,6 +73,9 @@ export const authOptions: AuthOptions = {
     strategy: "jwt",
   },
 
+  // @ts-ignore
+  trustHost: true,
+
   secret: process.env.NEXTAUTH_SECRET || "default_super_secret_for_development",
 };
 

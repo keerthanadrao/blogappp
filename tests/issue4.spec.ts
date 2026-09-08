@@ -20,10 +20,9 @@ test.describe('Issue #4: Admin Dashboard', () => {
     // Navigate directly to /admin as a guest
     await page.goto('http://127.0.0.1:3000/admin');
 
-    // Should be redirected or access denied. Our logic redirects to `/` or NextAuth login.
-    // NextAuth might intercept with a 403 or redirect to auth page. But wait, `layout.tsx` redirects to `/`.
-    await page.waitForURL('http://127.0.0.1:3000/');
-    expect(page.url()).toBe('http://127.0.0.1:3000/');
+    // Should be redirected or access denied. AdminLayout redirects to `/login?role=admin`.
+    await page.waitForURL(/(\/login|\/$)/);
+    expect(page.url()).toMatch(/(\/login|\/$)/);
 
     // Test API security
     const res = await request.get('http://127.0.0.1:3000/api/admin/categories');

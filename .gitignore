@@ -23,6 +23,9 @@
 # misc
 .DS_Store
 *.pem
+*.pptx
+cloudflared.exe
+generate_ppt.py
 
 # debug
 npm-debug.log*

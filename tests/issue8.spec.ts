@@ -48,8 +48,17 @@ test.describe('Issue #8: Post Creation and Editing UI', () => {
     await prisma.user.deleteMany({ where: { email: { in: [authorEmail, readerEmail] } } });
   });
 
-  test('User can create draft, filter tabs, edit, publish, and delete their post', async ({ page }) => {
-    // 1. Authenticate author
+  test('User can create draft, filter tabs, edit, publish, and delete their post', async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    // 1. Register and Authenticate author
+    await prisma.user.deleteMany({ where: { email: authorEmail } });
+    const regRes = await page.request.post('http://127.0.0.1:3000/api/auth/register', {
+      data: { email: authorEmail, password: password, name: 'Author Tester' },
+    });
+    expect(regRes.ok()).toBeTruthy();
+
     const csrfRes = await page.request.get('http://127.0.0.1:3000/api/auth/csrf');
     const csrfData = await csrfRes.json();
 
@@ -65,7 +74,7 @@ test.describe('Issue #8: Post Creation and Editing UI', () => {
 
     // 2. Navigate to home and verify navigation options
     await page.goto('http://127.0.0.1:3000/');
-    await expect(page.locator('text=Welcome, Author Tester')).toBeVisible();
+    await expect(page.locator('text=Author Tester')).toBeVisible();
     await expect(page.locator('text=Write Post')).toBeVisible();
     await expect(page.locator('text=My Posts')).toBeVisible();
 
@@ -138,6 +147,8 @@ test.describe('Issue #8: Post Creation and Editing UI', () => {
     // Verify it is removed from Main Feed
     await page.goto('http://127.0.0.1:3000/');
     await expect(page.locator('body', { hasText: 'Test Post Published Title' })).toHaveCount(0);
+
+    await context.close();
   });
 
   test('Other users cannot edit or delete someone else post via API or UI', async ({ browser }) => {
@@ -157,17 +168,11 @@ test.describe('Issue #8: Post Creation and Editing UI', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    const csrfRes = await page.request.get('http://127.0.0.1:3000/api/auth/csrf');
-    const csrfData = await csrfRes.json();
-
-    await page.request.post('http://127.0.0.1:3000/api/auth/callback/credentials', {
-      form: {
-        csrfToken: csrfData.csrfToken,
-        email: readerEmail,
-        password: password,
-        json: 'true',
-      },
-    });
+    await page.goto('http://127.0.0.1:3000/login');
+    await page.fill('input[type="email"]', readerEmail);
+    await page.fill('input[type="password"]', password);
+    await page.click('button[type="submit"]');
+    await page.waitForURL('http://127.0.0.1:3000/');
 
     // Attempt to access edit page of author's post -> should redirect to /
     await page.goto(`http://127.0.0.1:3000/posts/${post.id}/edit`);

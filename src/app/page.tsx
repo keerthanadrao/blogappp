@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import Link from 'next/link';
 import PostCard from '../components/PostCard';
+import AuthNav from '../components/AuthNav';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]/route';
 
@@ -56,23 +57,14 @@ export default async function Home() {
           </h1>
           <p style={{ color: 'var(--text-secondary)' }}>Discover the latest stories and insights.</p>
         </div>
-        <nav style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          {session ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-              <span>Welcome, {session.user?.name || session.user?.email}</span>
-              <Link href="/posts/new" className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '0.9rem' }}>Write Post</Link>
-              <Link href="/my-posts" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.9rem' }}>My Posts</Link>
-              {session.user?.role === 'ADMIN' && (
-                <Link href="/admin" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.9rem' }}>Dashboard</Link>
-              )}
-            </div>
-          ) : (
-            <>
-              <Link href="/login" className="btn btn-secondary">Login</Link>
-              <Link href="/signup" className="btn btn-primary">Sign Up</Link>
-            </>
-          )}
-        </nav>
+        <AuthNav 
+          user={session?.user ? {
+            id: (session.user as any).id,
+            name: session.user.name,
+            email: session.user.email,
+            role: (session.user as any).role
+          } : null} 
+        />
       </header>
 
       {/* Main Feed */}

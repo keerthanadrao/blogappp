@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog App — Presentation Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: rgba(24, 24, 27, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.4);
+      --primary: #6366f1;
+      --primary-glow: #818cf8;
+      --secondary: #10b981;
+      --accent: #d946ef;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(217, 70, 239, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1, h2, h3, .heading-font {
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    /* Top Nav */
+    .topbar {
+      padding: 1rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(9, 9, 11, 0.6);
+      backdrop-filter: blur(16px);
+      z-index: 10;
+    }
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, var(--primary-glow) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-badge {
+      font-size: 0.7rem;
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary-glow);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      font-weight: 700;
+    }
+    .slide-indicator {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    /* Deck Viewport */
+    .deck-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1150px;
+      height: 82vh;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 3.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(20px);
+      position: relative;
+      overflow-y: auto;
+    }
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: scale(0.97) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Slide Titles */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--primary-glow);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      width: fit-content;
+    }
+    .slide-title {
+      font-size: 2.75rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 2rem;
+      line-height: 1.15;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--primary-glow), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Grids & Cards */
+    .grid-2 { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 2.5rem; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; width: 100%; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; width: 100%; }
+
+    .glow-card {
+      background: rgba(18, 18, 20, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.8rem;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .glow-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(99, 102, 241, 0.15);
+    }
+    .glow-card .card-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+    .glow-card h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    
+    /* Keyword Bullet Items */
+    .keyword-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+    .keyword-list li {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .keyword-list li strong { color: #fff; }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary-glow);
+      flex-shrink: 0;
+    }
+    .dot-green { background: var(--secondary); }
+    .dot-pink { background: var(--accent); }
+
+    /* Tags */
+    .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.2rem; }
+    .tag-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    /* Controls Bar */
+    .bottom-bar {
+      padding: 1.2rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      background: rgba(9, 9, 11, 0.8);
+      backdrop-filter: blur(16px);
+      z-index: 10;
+    }
+    .nav-buttons { display: flex; gap: 12px; }
+    .btn {
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #4f46e5);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Print / Export Style */
+    @media print {
+      body { overflow: visible; height: auto; background: #000; }
+      .topbar, .bottom-bar { display: none; }
+      .deck-viewport { padding: 0; display: block; }
+      .slide { display: block !important; page-break-after: always; height: 100vh; max-width: 100%; border-radius: 0; border: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="topbar">
+    <div class="logo">
+      <span>✨ BLOG APP</span>
+      <span class="logo-badge">STACK & ARCHITECTURE</span>
+    </div>
+    <div class="slide-indicator" id="slideIndicator">SLIDE 01 / 06</div>
+  </header>
+
+  <!-- Slide Deck Viewport -->
+  <main class="deck-viewport">
+
+    <!-- SLIDE 1: Title & Hero -->
+    <section class="slide active">
+      <div class="grid-2">
+        <div>
+          <div class="pill">⚡ Full-Stack Platform</div>
+          <h1 class="slide-title">Modern <span class="gradient-text">Blog Application</span></h1>
+          <p style="color: var(--text-muted); font-size: 1.15rem; line-height: 1.6; margin-bottom: 2rem;">
+            High-performance editorial engine with recursive nested conversations, instant reactions, and multi-tenant role controls.
+          </p>
+          <div class="tags-container">
+            <span class="tag-chip">⚡ Next.js 16 (Turbopack)</span>
+            <span class="tag-chip">⚛️ React 19</span>
+            <span class="tag-chip">💎 Prisma ORM</span>
+            <span class="tag-chip">🔒 NextAuth RBAC</span>
+            <span class="tag-chip">🎭 Playwright E2E</span>
+          </div>
+        </div>
+        <div>
+          <img src="C:/Users/hp/.gemini/antigravity-ide/brain/7fa717d2-052b-43f2-9db0-3b5fa0af273b/blog_feed_ui_1788840889153.jpg" alt="Blog Application Feed" style="width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.6);" />
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Frontend & Design Stack -->
+    <section class="slide">
+      <div class="pill">🎨 Frontend Layer</div>
+      <h2 class="slide-title">Tools & Technologies — <span class="gradient-text">Frontend UI</span></h2>
+      <div class="grid-3">
+        <div class="glow-card">
+          <div class="card-icon">⚡</div>
+          <h3>Next.js 16 & React 19</h3>
+          <ul class="keyword-list">
+            <li><span class="dot"></span><strong>App Router</strong> Architecture</li>
+            <li><span class="dot"></span><strong>Server Components (RSC)</strong> for Fast SSR</li>
+            <li><span class="dot"></span><strong>Turbopack</strong> Instant HMR Bundler</li>
+            <li><span class="dot"></span><strong>Client Hooks</strong> (useState, useRouter)</li>
+          </ul>
+        </div>
+        <div class="glow-card">
+          <div class="card-icon">✨</div>
+          <h3>Custom Design System</h3>
+          <ul class="keyword-list">
+            <li><span class="dot dot-pink"></span><strong>Pure Vanilla CSS</strong> (Zero Bloat)</li>
+            <li><span class="dot dot-pink"></span><strong>CSS Custom Properties</strong> (Design Tokens)</li>
+            <li><span class="dot dot-pink"></span><strong>Glassmorphic Backdrop</strong> Blur (12px)</li>
+            <li><span class="dot dot-pink"></span><strong>Elevation</strong> & Smooth Transitions</li>
+          </ul>
+        </div>
+        <div class="glow-card">
+          <div class="card-icon">🔤</div>
+          <h3>Typography & Theme</h3>
+          <ul class="keyword-list">
+            <li><span class="dot dot-green"></span><strong>Inter / Outfit</strong> Google Fonts</li>
+            <li><span class="dot dot-green"></span><strong>Dark Mode Theme</strong> (`#09090b` Canvas)</li>
+            <li><span class="dot dot-green"></span><strong>Indigo & Violet</strong> Vibrant Gradients</li>
+            <li><span class="dot dot-green"></span><strong>Responsive Grid</strong> & Layouts</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Backend & Authentication Stack -->
+    <section class="slide">
+      <div class="pill">⚙️ Backend Layer</div>
+      <h2 class="slide-title">Tools & Technologies — <span class="gradient-text">Backend & Security</span></h2>
+      <div class="grid-3">
+        <div class="glow-card">
+          <div class="card-icon">🌐</div>
+          <h3>Route Handlers</h3>
+          <ul class="keyword-list">
+            <li><span class="dot"></span><strong>RESTful API</strong> Route Handlers</li>
+            <li><span class="dot"></span><strong>Next.js Async Params</strong> Handling</li>
+            <li><span class="dot"></span><strong>JSON Response</strong> Serialization</li>
+            <li><span class="dot"></span><strong>Error Status Codes</strong> (401, 403, 404, 500)</li>
+          </ul>
+        </div>
+        <div class="glow-card">
+          <div class="card-icon">🔒</div>
+          <h3>NextAuth.js System</h3>
+          <ul class="keyword-list">
+            <li><span class="dot dot-pink"></span><strong>Stateless JWT Strategy</strong></li>
+            <li><span class="dot dot-pink"></span><strong>Credentials Provider</strong> Auth</li>
+            <li><span class="dot dot-pink"></span><strong>CSRF Token</strong> Protection</li>
+            <li><span class="dot dot-pink"></span><strong>TypeScript Declarations</strong> Merging</li>
+          </ul>
+        </div>
+        <div class="glow-card">
+          <div class="card-icon">🛡️</div>
+          <h3>RBAC & Encryption</h3>
+          <ul class="keyword-list">
+            <li><span class="dot dot-green"></span><strong>Bcrypt.js</strong> Salted Password Hashing</li>
+            <li><span class="dot dot-green"></span><strong>Role Hierarchy</strong>: `READER` & `ADMIN`</li>
+            <li><span class="dot dot-green"></span><strong>Admin Registration Secret</strong> Guard</li>
+            <li><span class="dot dot-green"></span><strong>Granular Permission</strong> Checks</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Database & ORM Stack -->
+    <section class="slide">
+      <div class="pill">🗄️ Persistence Layer</div>
+      <h2 class="slide-title">Tools & Technologies — <span class="gradient-text">Data Architecture</span></h2>
+      <div class="grid-3">
+        <div class="glow-card">
+          <div class="card-icon">💎</div>
+          <h3>Prisma ORM 6</h3>
+          <ul class="keyword-list">
+            <li><span class="dot"></span><strong>Schema Definition Language (SDL)</strong></li>
+            <li><span class="dot"></span><strong>Type-Safe Queries</strong> & Autocomplete</li>
+            <li><span class="dot"></span><strong>Automated Migrations</strong> Engine</li>
+            <li><span class="dot"></span><strong>Fluent Relations</strong> & Aggregates</li>
+          </ul>
+        </div>
+        <div class="glow-card">
+          <div class="card-icon">📦</div>
+          <h3>Database Engines</h3>
+          <ul class="keyword-list">
+            <li><span class="dot dot-pink"></span><strong>SQLite</strong> (Zero-Config Development)</li>
+            <li><span class="dot dot-pink"></span><strong>PostgreSQL Ready</strong> for Cloud Deploy</li>
+            <li><span class="dot dot-pink"></span><strong>Foreign Key Constraints</strong> Active</li>
+            <li><span class="dot dot-pink"></span><strong>Cascade Delete</strong> Rule Enforcement</li>
+          </ul>
+        </div>
+        <div class="glow-card">
+          <div class="card-icon">🧬</div>
+          <h3>Entity Models</h3>
+          <ul class="keyword-list">
+            <li><span class="dot dot-green"></span><strong>User</strong> (id, email, password, role)</li>
+            <li><span class="dot dot-green"></span><strong>Post & Category</strong> (Taxonomy link)</li>
+            <li><span class="dot dot-green"></span><strong>Comment</strong> (Self-referencing tree)</li>
+            <li><span class="dot dot-green"></span><strong>Like</strong> (Composite unique PK)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: Core Application Modules -->
+    <section class="slide">
+      <div class="pill">🚀 Feature Matrix</div>
+      <h2 class="slide-title">Key Modules — <span class="gradient-text">Application Features</span></h2>
+      <div class="grid-4">
+        <div class="glow-card">
+          <div class="card-icon">📰</div>
+          <h3>Main Feed</h3>
+          <ul class="keyword-list">
+            <li><span class="dot"></span>Chronological Stream</li>
+            <li><span class="dot"></span>Category Tags</li>
+            <li><span class="dot"></span>Author Avatars</li>
+          </ul>
+        </div>
+        <div class="glow-card">
+          <div class="card-icon">❤️</div>
+          <h3>Likes Engine</h3>
+          <ul class="keyword-list">
+            <li><span class="dot dot-pink"></span>Optimistic Toggling</li>
+            <li><span class="dot dot-pink"></span>Interactive Likers Modal</li>
+            <li><span class="dot dot-pink"></span>Duplicate Prevention</li>
+          </ul>
+        </div>
+        <div class="glow-card">
+          <div class="card-icon">💬</div>
+          <h3>Nested Comments</h3>
+          <ul class="keyword-list">
+            <li><span class="dot dot-green"></span>Recursive Tree Replies</li>
+            <li><span class="dot dot-green"></span>Author In-Place Edit</li>
+            <li><span class="dot dot-green"></span>Admin Moderation Shield</li>
+          </ul>
+        </div>
+        <div class="glow-card">
+          <div class="card-icon">🛡️</div>
+          <h3>Admin Dashboard</h3>
+          <ul class="keyword-list">
+            <li><span class="dot"></span>Category CRUD</li>
+            <li><span class="dot"></span>Drafts & Publishing</li>
+            <li><span class="dot"></span>Protected `/admin` Route</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Automated Testing & Verification -->
+    <section class="slide">
+      <div class="pill">🧪 Quality Assurance</div>
+      <h2 class="slide-title">Test Automation — <span class="gradient-text">Playwright & QA</span></h2>
+      <div class="grid-2">
+        <div class="glow-card">
+          <div class="card-icon">🎭</div>
+          <h3>Playwright E2E Test Suite</h3>
+          <ul class="keyword-list">
+            <li><span class="dot"></span><strong>Issue #1:</strong> Next.js & Database Init</li>
+            <li><span class="dot"></span><strong>Issue #2:</strong> NextAuth Login & Validation</li>
+            <li><span class="dot"></span><strong>Issue #3:</strong> Reader/Admin Registration</li>
+            <li><span class="dot"></span><strong>Issue #4:</strong> Admin Dashboard RBAC</li>
+            <li><span class="dot"></span><strong>Issue #5:</strong> Main Feed Chronological Stream</li>
+            <li><span class="dot"></span><strong>Issue #6:</strong> Like System & Modal</li>
+            <li><span class="dot"></span><strong>Issue #7:</strong> Nested Comment Threads & Deletion</li>
+          </ul>
+        </div>
+        <div class="glow-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+          <div style="font-size: 4rem; font-weight: 900; color: var(--secondary); font-family: 'Outfit';">100%</div>
+          <h3 style="margin-top: 0.5rem; font-size: 1.4rem;">16/16 Test Suites Passed</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem;">
+            Headless Chromium Automation • Zero Regressions • Production Ready
+          </p>
+          <div class="tags-container" style="justify-content: center; margin-top: 1.5rem;">
+            <span class="tag-chip">✅ Multi-Context Browser</span>
+            <span class="tag-chip">✅ Strict Mode Verified</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <footer class="bottom-bar">
+    <div class="nav-buttons">
+      <button class="btn btn-outline" id="prevBtn" onclick="changeSlide(-1)">◀ Prev</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="changeSlide(1)">Next ▶</button>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-outline" onclick="window.print()">📥 Download / Save PDF</button>
+    </div>
+  </footer>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const indicator = document.getElementById('slideIndicator');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function renderSlide() {
+      slides.forEach((slide, idx) => {
+        slide.classList.toggle('active', idx === currentSlide);
+      });
+      indicator.innerText = `SLIDE 0${currentSlide + 1} / 0${slides.length}`;
+      prevBtn.disabled = currentSlide === 0;
+      nextBtn.disabled = currentSlide === slides.length - 1;
+    }
+
+    function changeSlide(direction) {
+      currentSlide = Math.max(0, Math.min(slides.length - 1, currentSlide + direction));
+      renderSlide();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') changeSlide(1);
+      if (e.key === 'ArrowLeft') changeSlide(-1);
+    });
+
+    renderSlide();
+  </script>
+</body>
+</html>
