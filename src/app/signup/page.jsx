@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import AuthSuccessModal from "@/components/AuthSuccessModal";
 
 function SignupForm() {
     const router = useRouter();
@@ -16,6 +17,7 @@ function SignupForm() {
     const [secretKey, setSecretKey] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const [showPassword, setShowPassword] = useState(false);
     const [showSecretKey, setShowSecretKey] = useState(false);
@@ -49,25 +51,40 @@ function SignupForm() {
 
             if (!response.ok) {
                 setError(data.error || "Registration failed");
+                setLoading(false);
                 return;
             }
 
-            router.push(role === 'admin' ? "/login?role=admin" : "/login");
+            // Show success popup and automatically redirect to Login page
+            setShowSuccessModal(true);
+            setLoading(false);
+
+            setTimeout(() => {
+                router.push(role === 'admin' ? "/login?role=admin" : "/login");
+            }, 800);
         } catch {
             setError("Something went wrong. Please try again.");
-        } finally {
             setLoading(false);
         }
     }
 
     return (
-        <div className="card" style={{ 
-            width: '100%', 
-            maxWidth: '460px', 
-            padding: 'var(--space-6)',
-            border: role === 'admin' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
-            boxShadow: role === 'admin' ? '0 8px 32px rgba(239, 68, 68, 0.15)' : '0 8px 32px rgba(0, 0, 0, 0.5)'
-        }}>
+        <>
+            <AuthSuccessModal
+                isOpen={showSuccessModal}
+                title="Account Created Successfully!"
+                message={role === 'admin' 
+                    ? "Your administrator account has been set up. Opening Sign In..." 
+                    : "Welcome to Antigravity Blog! Your account is ready."}
+                redirectingTo="Sign In"
+            />
+            <div className="card" style={{ 
+                width: '100%', 
+                maxWidth: '460px', 
+                padding: 'var(--space-6)',
+                border: role === 'admin' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
+                boxShadow: role === 'admin' ? '0 8px 32px rgba(239, 68, 68, 0.15)' : '0 8px 32px rgba(0, 0, 0, 0.5)'
+            }}>
             <div style={{ textAlign: 'center', marginBottom: 'var(--space-5)' }}>
                 <Link href="/" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                     ← Back to Blog
@@ -309,6 +326,7 @@ function SignupForm() {
                 </Link>
             </div>
         </div>
+        </>
     );
 }
 

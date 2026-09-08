@@ -4,6 +4,7 @@ import { signIn, getSession } from "next-auth/react";
 import { FormEvent, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import AuthSuccessModal from "@/components/AuthSuccessModal";
 
 function LoginForm() {
     const router = useRouter();
@@ -15,6 +16,8 @@ function LoginForm() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [destination, setDestination] = useState<string>("/");
 
     const [showPassword, setShowPassword] = useState(false);
 
@@ -51,22 +54,33 @@ function LoginForm() {
             return;
         }
 
-        if (session?.user?.role === 'ADMIN') {
-            router.push("/admin");
-        } else {
-            router.push("/");
-        }
-        router.refresh();
+        const targetPath = session?.user?.role === 'ADMIN' ? "/admin" : "/";
+        setDestination(targetPath);
+        setShowSuccessModal(true);
+
+        setTimeout(() => {
+            router.push(targetPath);
+            router.refresh();
+        }, 800);
     }
 
     return (
-        <div className="card" style={{ 
-            width: '100%', 
-            maxWidth: '440px', 
-            padding: 'var(--space-6)',
-            border: loginRole === 'admin' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
-            boxShadow: loginRole === 'admin' ? '0 8px 32px rgba(239, 68, 68, 0.15)' : '0 8px 32px rgba(0, 0, 0, 0.5)'
-        }}>
+        <>
+            <AuthSuccessModal
+                isOpen={showSuccessModal}
+                title="Successfully Logged In!"
+                message={destination === "/admin" 
+                    ? "Welcome to Admin Dashboard! Loading your administrative controls..." 
+                    : "Welcome back to Antigravity Blog! Redirecting to Home Feed..."}
+                redirectingTo={destination === "/admin" ? "Admin Portal" : "Home"}
+            />
+            <div className="card" style={{ 
+                width: '100%', 
+                maxWidth: '440px', 
+                padding: 'var(--space-6)',
+                border: loginRole === 'admin' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
+                boxShadow: loginRole === 'admin' ? '0 8px 32px rgba(239, 68, 68, 0.15)' : '0 8px 32px rgba(0, 0, 0, 0.5)'
+            }}>
             <div style={{ textAlign: 'center', marginBottom: 'var(--space-5)' }}>
                 <Link href="/" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                     ← Back to Blog
@@ -253,6 +267,7 @@ function LoginForm() {
                 </Link>
             </div>
         </div>
+        </>
     );
 }
 
