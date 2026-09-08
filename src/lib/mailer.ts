@@ -30,14 +30,19 @@ export async function sendOtpEmail(to: string, otp: string): Promise<{ sent: boo
 
     if (user && pass) {
       const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true, // Direct SSL
         auth: {
           user,
           pass,
         },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
       });
 
-      const senderFrom = process.env.SMTP_FROM || `"Antigravity Blog" <${user}>`;
+      const senderFrom = `"Antigravity Blog" <${user}>`;
 
       const info = await transporter.sendMail({
         from: senderFrom,
