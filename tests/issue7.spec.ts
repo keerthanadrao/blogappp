@@ -192,6 +192,19 @@ test.describe('Issue #7: Nested Comment System', () => {
   });
 
   test('Admin can delete any comment or reply', async ({ browser }) => {
+    // Ensure test users exist in DB
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await prisma.user.upsert({
+      where: { email: reader1Email },
+      update: { role: 'READER' },
+      create: { email: reader1Email, name: 'Reader One', password_hash: hashedPassword, role: 'READER' },
+    });
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { role: 'ADMIN' },
+      create: { email: adminEmail, name: 'Admin Person', password_hash: hashedPassword, role: 'ADMIN' },
+    });
+
     // Create a comment as Reader 1
     const readerContext = await browser.newContext();
     const readerPage = await readerContext.newPage();
@@ -235,7 +248,8 @@ test.describe('Issue #7: Nested Comment System', () => {
       },
     });
 
-    await adminPage.goto('http://127.0.0.1:3000/');
+    await adminPage.goto('http://127.0.0.1:3000/', { waitUntil: 'domcontentloaded' });
+    await expect(adminPage.locator('button:has-text("Sign Out")')).toBeVisible({ timeout: 10000 });
     const postAdmin = adminPage.locator('article', { hasText: 'Post For Comment Testing' });
     await postAdmin.locator('button.comment-toggle-btn').click();
 

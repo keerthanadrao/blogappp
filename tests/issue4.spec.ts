@@ -18,7 +18,7 @@ test.describe('Issue #4: Admin Dashboard', () => {
 
   test('Security: Non-Admins cannot access dashboard', async ({ page, request }) => {
     // Navigate directly to /admin as a guest
-    await page.goto('http://127.0.0.1:3000/admin');
+    await page.goto('http://127.0.0.1:3000/admin', { waitUntil: 'domcontentloaded' });
 
     // Should be redirected or access denied. AdminLayout redirects to `/login?role=admin`.
     await page.waitForURL(/(\/login|\/$)/);
@@ -30,7 +30,8 @@ test.describe('Issue #4: Admin Dashboard', () => {
   });
 
   test('Admin can access dashboard and manage categories and posts', async ({ page, request }) => {
-    // 1. Register an Admin
+    // 1. Clean up existing admin and register Admin
+    await prisma.user.deleteMany({ where: { role: 'ADMIN' } });
     const regRes = await page.request.post('http://127.0.0.1:3000/api/auth/admin-register', {
       data: { email: 'admin_dashboard@example.com', password: 'password', name: 'Dashboard Admin', secretKey: 'default_admin_secret' }
     });

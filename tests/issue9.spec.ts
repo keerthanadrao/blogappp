@@ -11,7 +11,8 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
     const newUserPassword = 'NewReaderPassword456!';
 
     test.beforeAll(async ({ request }) => {
-        // Register test Admin
+        // Clean up previous admin and register test Admin
+        await prisma.user.deleteMany({ where: { role: 'ADMIN' } });
         const adminRes = await request.post('http://127.0.0.1:3000/api/auth/admin-register', {
             data: {
                 email: adminEmail,
@@ -44,7 +45,7 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
         await expect(adminForgotLink).toBeVisible();
         await adminForgotLink.click();
         await page.waitForURL('**/forgot-password?role=admin');
-        await expect(page.locator('text=Admin Password Recovery')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Admin Password Recovery' })).toBeVisible();
 
         // 2. Check User Login
         await page.goto('http://127.0.0.1:3000/login', { waitUntil: 'domcontentloaded' });
@@ -52,7 +53,7 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
         await expect(userForgotLink).toBeVisible();
         await userForgotLink.click();
         await page.waitForURL('**/forgot-password');
-        await expect(page.locator('text=Reset Your Password')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Reset Your Password' })).toBeVisible();
     });
 
     test('Positive Test 3: Registered Admin can request OTP and reset password', async ({ page }) => {

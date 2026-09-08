@@ -61,7 +61,7 @@ export async function POST(req: Request) {
 
     console.log(`[AUTH/OTP] Generated OTP for ${trimmedEmail}: ${otp} (expires in 10m)`);
 
-    // Dispatch real email via SMTP in background without blocking response
+    // Dispatch real email via SMTP in background
     sendOtpEmail(trimmedEmail, otp).catch((err) => {
       console.error("[AUTH/OTP] Background mail dispatch error:", err);
     });

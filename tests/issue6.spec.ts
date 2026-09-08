@@ -33,8 +33,8 @@ test.describe('Issue #6: Like System', () => {
 
   test('Registered user can like/unlike and see likers', async ({ page, request }) => {
     // 1. Register a user
-    const regRes = await page.request.post('http://127.0.0.1:3000/api/auth/admin-register', {
-      data: { email: 'liker_test@example.com', password: 'password', name: 'Liker Tester', secretKey: 'default_admin_secret' } // using admin-register just for quick setup, it's fine for testing
+    const regRes = await page.request.post('http://127.0.0.1:3000/api/auth/register', {
+      data: { email: 'liker_test@example.com', password: 'password', name: 'Liker Tester' }
     });
     expect(regRes.ok()).toBeTruthy();
 

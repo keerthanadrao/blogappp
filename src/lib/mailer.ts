@@ -2,8 +2,6 @@ import nodemailer from "nodemailer";
 
 export async function sendOtpEmail(to: string, otp: string): Promise<{ sent: boolean; previewUrl?: string; error?: string }> {
   try {
-    const host = process.env.SMTP_HOST || (process.env.GMAIL_USER ? "smtp.gmail.com" : undefined);
-    const port = Number(process.env.SMTP_PORT) || 587;
     const user = process.env.SMTP_USER || process.env.GMAIL_USER;
     const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
 
@@ -30,27 +28,28 @@ export async function sendOtpEmail(to: string, otp: string): Promise<{ sent: boo
       </div>
     `;
 
-    if (host && user && pass) {
-      // Configured SMTP (e.g. Gmail App Password, SendGrid, Amazon SES, Mailgun)
+    if (user && pass) {
       const transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user, pass },
+        service: 'gmail',
+        auth: {
+          user,
+          pass,
+        },
       });
 
+      const senderFrom = process.env.SMTP_FROM || `"Antigravity Blog" <${user}>`;
+
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || `"Antigravity Blog" <no-reply@blogapp.local>`,
+        from: senderFrom,
         to,
         subject: `Your Password Reset OTP: ${otp}`,
         text: `Your password recovery OTP is: ${otp}. It will expire in 10 minutes.`,
         html: htmlContent,
       });
 
-      console.log(`[MAILER/SUCCESS] OTP email dispatched via SMTP to ${to}. MessageId: ${info.messageId}`);
+      console.log(`[MAILER/SUCCESS] OTP email dispatched via Gmail SMTP to ${to}. MessageId: ${info.messageId}`);
       return { sent: true };
     } else {
-      // Instant dev logger mode (instant response, displays on screen & server console)
       console.log(`\n======================================================`);
       console.log(`[MAILER/DEV] ✉️  SIMULATED EMAIL TO: ${to}`);
       console.log(`[MAILER/DEV] 🔑  OTP CODE: ${otp}`);
