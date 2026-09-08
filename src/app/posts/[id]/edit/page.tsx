@@ -59,6 +59,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
           body: post.body,
           categoryId: post.categoryId,
           status: post.status as 'PUBLISHED' | 'DRAFT',
+          cover_image_url: post.cover_image_url,
         }} 
       />
     </div>

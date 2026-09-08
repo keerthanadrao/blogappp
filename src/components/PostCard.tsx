@@ -14,6 +14,7 @@ interface PostCardProps {
     author: { name: string | null; email: string };
     category: { name: string } | null;
     _count: { likes: number; comments: number };
+    cover_image_url?: string | null;
   };
   initialLiked: boolean;
   userAuthenticated: boolean;
@@ -33,6 +34,7 @@ export default function PostCard({ post, initialLiked, userAuthenticated, curren
   const [showLikers, setShowLikers] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleLike = async () => {
     if (!userAuthenticated) {
@@ -84,6 +86,32 @@ export default function PostCard({ post, initialLiked, userAuthenticated, curren
           gap: 'var(--space-3)',
         }}
       >
+        {/* Cover Image Banner */}
+        {post.cover_image_url && !imageError && (
+          <div
+            style={{
+              width: '100%',
+              maxHeight: '340px',
+              overflow: 'hidden',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: 'var(--space-1)',
+              backgroundColor: 'rgba(0,0,0,0.3)',
+            }}
+          >
+            <img
+              src={post.cover_image_url}
+              alt={post.title}
+              onError={() => setImageError(true)}
+              style={{
+                width: '100%',
+                maxHeight: '340px',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          </div>
+        )}
+
         {/* Category Badge */}
         {post.category && (
           <div

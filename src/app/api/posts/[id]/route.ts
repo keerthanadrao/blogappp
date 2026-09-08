@@ -68,6 +68,17 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     const { title, body, categoryId, status, cover_image_url } = await request.json();
 
+    if (cover_image_url && typeof cover_image_url === 'string' && cover_image_url.trim()) {
+      try {
+        const parsed = new URL(cover_image_url.trim());
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          return NextResponse.json({ error: 'Invalid Image URL format. Must start with http:// or https://' }, { status: 400 });
+        }
+      } catch {
+        return NextResponse.json({ error: 'Invalid Image URL format.' }, { status: 400 });
+      }
+    }
+
     const postStatus = status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT';
 
     const updatedPost = await prisma.post.update({
