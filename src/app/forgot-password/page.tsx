@@ -18,7 +18,6 @@ function ForgotPasswordForm() {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [loading, setLoading] = useState(false);
-    const [devOtpHint, setDevOtpHint] = useState("");
 
     useEffect(() => {
         if (searchParams.get('role') === 'admin') {
@@ -61,9 +60,6 @@ function ForgotPasswordForm() {
             }
 
             setSuccessMessage(data.message || "OTP sent successfully!");
-            if (data.otp) {
-                setDevOtpHint(data.otp);
-            }
             setStep(2);
         } catch (err: any) {
             setError("Network error. Please try again.");
@@ -200,22 +196,6 @@ function ForgotPasswordForm() {
                     textAlign: 'center'
                 }}>
                     {successMessage}
-                </div>
-            )}
-
-            {/* Dev Mode OTP Banner */}
-            {devOtpHint && step === 2 && (
-                <div style={{
-                    padding: 'var(--space-2) var(--space-3)',
-                    marginBottom: 'var(--space-4)',
-                    backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                    border: '1px dashed var(--primary)',
-                    borderRadius: 'var(--radius-md)',
-                    color: '#c7d2fe',
-                    fontSize: '0.85rem',
-                    textAlign: 'center'
-                }}>
-                    🔑 <strong>Development OTP:</strong> <code style={{ letterSpacing: '2px', fontWeight: 'bold' }}>{devOtpHint}</code>
                 </div>
             )}
 

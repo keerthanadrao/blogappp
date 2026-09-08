@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
     const adminEmail = `admin_recovery_${Date.now()}@example.com`;
@@ -63,10 +66,13 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
         await expect(page.locator('text=OTP sent successfully')).toBeVisible();
         await expect(page.locator('#otp-input')).toBeVisible();
 
-        // Extract dev OTP from the rendered hint
-        const devHint = await page.locator('code').textContent();
-        expect(devHint).toBeTruthy();
-        const validOtp = devHint!.trim();
+        // Fetch OTP from database
+        const otpRecord = await prisma.passwordResetOtp.findFirst({
+            where: { email: adminEmail, used: false },
+            orderBy: { createdAt: 'desc' }
+        });
+        expect(otpRecord).toBeTruthy();
+        const validOtp = otpRecord!.otp;
 
         // Enter OTP and new password
         await page.fill('#otp-input', validOtp);
@@ -84,7 +90,7 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
         await page.fill('#password', newAdminPassword);
         await page.click('button:has-text("Enter Admin Dashboard")');
         await page.waitForURL('**/admin');
-        await expect(page.locator('text=Admin Portal')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Admin Portal' })).toBeVisible();
     });
 
     test('Positive Test 4 & 5: Registered User can request OTP, verify, and login with new password', async ({ page }) => {
@@ -96,9 +102,14 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
 
         // Verify Step 2 is active
         await expect(page.locator('#otp-input')).toBeVisible();
-        const devHint = await page.locator('code').textContent();
-        expect(devHint).toBeTruthy();
-        const validOtp = devHint!.trim();
+        
+        // Fetch OTP from database
+        const otpRecord = await prisma.passwordResetOtp.findFirst({
+            where: { email: userEmail, used: false },
+            orderBy: { createdAt: 'desc' }
+        });
+        expect(otpRecord).toBeTruthy();
+        const validOtp = otpRecord!.otp;
 
         // Enter valid OTP and new password
         await page.fill('#otp-input', validOtp);

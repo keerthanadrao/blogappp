@@ -71,7 +71,6 @@ export async function POST(req: Request) {
         success: true,
         message: "OTP sent successfully to your registered email.",
         email: trimmedEmail,
-        otp, // Exposed for dev/testing simulation
       },
       { status: 200 }
     );
