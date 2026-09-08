@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { sendOtpEmail } from "@/lib/mailer";
 
 const prisma = new PrismaClient();
 
@@ -60,12 +61,17 @@ export async function POST(req: Request) {
 
     console.log(`[AUTH/OTP] Generated OTP for ${trimmedEmail}: ${otp} (expires in 10m)`);
 
+    // Dispatch real email via SMTP in background without blocking response
+    sendOtpEmail(trimmedEmail, otp).catch((err) => {
+      console.error("[AUTH/OTP] Background mail dispatch error:", err);
+    });
+
     return NextResponse.json(
       {
         success: true,
         message: "OTP sent successfully to your registered email.",
         email: trimmedEmail,
-        otp, // Exposed for test automation / dev simulation
+        otp, // Exposed for dev/testing simulation
       },
       { status: 200 }
     );
