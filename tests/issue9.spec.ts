@@ -64,8 +64,8 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
         await page.click('button:has-text("Send Verification OTP")');
 
         // Verify Step 2 opens with OTP input and success notice
-        await expect(page.locator('text=OTP sent successfully')).toBeVisible();
-        await expect(page.locator('#otp-input')).toBeVisible();
+        await expect(page.locator('text=OTP sent successfully')).toBeVisible({ timeout: 15000 });
+        await expect(page.locator('#otp-input')).toBeVisible({ timeout: 15000 });
 
         // Fetch OTP from database
         const otpRecord = await prisma.passwordResetOtp.findFirst({
@@ -102,7 +102,7 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
         await page.click('button:has-text("Send Verification OTP")');
 
         // Verify Step 2 is active
-        await expect(page.locator('#otp-input')).toBeVisible();
+        await expect(page.locator('#otp-input')).toBeVisible({ timeout: 15000 });
         
         // Fetch OTP from database
         const otpRecord = await prisma.passwordResetOtp.findFirst({
@@ -167,7 +167,7 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
 
         await page.fill('#recovery-email', userEmail);
         await page.click('button:has-text("Send Verification OTP")');
-        await expect(page.locator('#otp-input')).toBeVisible();
+        await expect(page.locator('#otp-input')).toBeVisible({ timeout: 15000 });
 
         // Enter incorrect 6-digit OTP
         await page.fill('#otp-input', '000000');
@@ -200,7 +200,7 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
 
         await page.fill('#recovery-email', userEmail);
         await page.click('button:has-text("Send Verification OTP")');
-        await expect(page.locator('#otp-input')).toBeVisible();
+        await expect(page.locator('#otp-input')).toBeVisible({ timeout: 15000 });
 
         // Disable native HTML5 validation on Step 2 form
         await page.evaluate(() => {

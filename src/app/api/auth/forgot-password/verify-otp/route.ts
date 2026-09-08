@@ -35,7 +35,10 @@ export async function POST(req: Request) {
     // Verify OTP record
     const otpRecord = await prisma.passwordResetOtp.findFirst({
       where: {
-        email: trimmedEmail,
+        OR: [
+          { email: email.trim() },
+          { email: trimmedEmail }
+        ],
         otp: trimmedOtp,
         used: false,
         expiresAt: {

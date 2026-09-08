@@ -27,9 +27,15 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { email: trimmedEmail },
+    // Check if user exists (case-tolerant match)
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: email.trim() },
+          { email: trimmedEmail },
+          { email: email.trim().toUpperCase() }
+        ]
+      }
     });
 
     if (!user) {
@@ -39,37 +45,45 @@ export async function POST(req: Request) {
       );
     }
 
+    const targetEmail = user.email;
+
     // Generate 6-digit numeric OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
     // Invalidate any older unused OTPs for this email
     await prisma.passwordResetOtp.updateMany({
-      where: { email: trimmedEmail, used: false },
+      where: {
+        OR: [
+          { email: targetEmail },
+          { email: trimmedEmail }
+        ],
+        used: false
+      },
       data: { used: true },
     });
 
     // Save new OTP
     await prisma.passwordResetOtp.create({
       data: {
-        email: trimmedEmail,
+        email: targetEmail,
         otp,
         expiresAt,
         used: false,
       },
     });
 
-    console.log(`[AUTH/OTP] Generated OTP for ${trimmedEmail}: ${otp} (expires in 10m)`);
+    console.log(`[AUTH/OTP] Generated OTP for ${targetEmail}: ${otp} (expires in 10m)`);
 
     // Dispatch real email via SMTP and await transmission
-    const mailResult = await sendOtpEmail(trimmedEmail, otp);
-    console.log(`[AUTH/OTP] Mailer dispatch result for ${trimmedEmail}:`, mailResult);
+    const mailResult = await sendOtpEmail(targetEmail, otp);
+    console.log(`[AUTH/OTP] Mailer dispatch result for ${targetEmail}:`, mailResult);
 
     return NextResponse.json(
       {
         success: true,
         message: "OTP sent successfully to your registered email.",
-        email: trimmedEmail,
+        email: targetEmail,
       },
       { status: 200 }
     );

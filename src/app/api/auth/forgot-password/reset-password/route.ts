@@ -36,7 +36,10 @@ export async function POST(req: Request) {
     // Verify OTP record
     const otpRecord = await prisma.passwordResetOtp.findFirst({
       where: {
-        email: trimmedEmail,
+        OR: [
+          { email: email.trim() },
+          { email: trimmedEmail }
+        ],
         otp: trimmedOtp,
         used: false,
         expiresAt: {
@@ -55,12 +58,30 @@ export async function POST(req: Request) {
       );
     }
 
+    // Find the user to update
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: email.trim() },
+          { email: trimmedEmail },
+          { email: email.trim().toUpperCase() }
+        ]
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User account not found." },
+        { status: 404 }
+      );
+    }
+
     // Hash the new password
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
     // Update user password
     await prisma.user.update({
-      where: { email: trimmedEmail },
+      where: { id: user.id },
       data: { password_hash: passwordHash },
     });
 
