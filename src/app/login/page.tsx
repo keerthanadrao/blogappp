@@ -31,7 +31,7 @@ function LoginForm() {
         setLoading(true);
 
         const result = await signIn("credentials", {
-            email,
+            email: email.trim(),
             password,
             redirect: false,
         });
@@ -46,7 +46,12 @@ function LoginForm() {
         const session: any = await getSession();
         setLoading(false);
 
-        if (session?.user?.role === 'ADMIN' || loginRole === 'admin') {
+        if (loginRole === 'admin' && session?.user?.role !== 'ADMIN') {
+            setError("Access denied. This account does not have Administrator privileges. Please sign in as Author / Reader.");
+            return;
+        }
+
+        if (session?.user?.role === 'ADMIN') {
             router.push("/admin");
         } else {
             router.push("/");
