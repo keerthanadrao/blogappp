@@ -15,25 +15,15 @@ export default async function AdminLayout({
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-color)' }}>
-      {/* Sleek Admin Sidebar */}
-      <aside
-        style={{
-          width: '260px',
-          backgroundColor: 'var(--surface-color)',
-          padding: 'var(--space-5) var(--space-4)',
-          borderRight: '1px solid var(--border-color)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}
-      >
+    <div className="admin-container">
+      {/* Sleek Admin Sidebar (Responsive) */}
+      <aside className="admin-sidebar">
         <div>
-          <div style={{ marginBottom: 'var(--space-6)' }}>
+          <div style={{ marginBottom: 'var(--space-5)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
               <span style={{ fontSize: '1.5rem' }}>🛡️</span>
               <div>
-                <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0 }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
                   Admin Portal
                 </h2>
                 <span 
@@ -56,23 +46,23 @@ export default async function AdminLayout({
             <Link
               href="/admin"
               className="btn btn-primary"
-              style={{ justifyContent: 'flex-start', padding: '10px 14px' }}
+              style={{ justifyContent: 'flex-start', padding: '8px 12px', fontSize: '0.9rem' }}
             >
-              📊 Overview & Moderation
+              📊 Moderation
             </Link>
 
             <Link
               href="/posts/new"
               className="btn btn-secondary"
-              style={{ justifyContent: 'flex-start', padding: '10px 14px' }}
+              style={{ justifyContent: 'flex-start', padding: '8px 12px', fontSize: '0.9rem' }}
             >
-              ✍️ Write New Post
+              ✍️ Write Post
             </Link>
 
             <Link
               href="/my-posts"
               className="btn btn-secondary"
-              style={{ justifyContent: 'flex-start', padding: '10px 14px' }}
+              style={{ justifyContent: 'flex-start', padding: '8px 12px', fontSize: '0.9rem' }}
             >
               📁 My Posts
             </Link>
@@ -80,9 +70,9 @@ export default async function AdminLayout({
             <Link
               href="/"
               className="btn btn-secondary"
-              style={{ justifyContent: 'flex-start', padding: '10px 14px' }}
+              style={{ justifyContent: 'flex-start', padding: '8px 12px', fontSize: '0.9rem' }}
             >
-              🌐 View Main Feed
+              🌐 Main Feed
             </Link>
           </nav>
         </div>
@@ -95,19 +85,20 @@ export default async function AdminLayout({
           border: '1px solid var(--border-color)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--space-2)'
+          gap: 'var(--space-2)',
+          marginTop: 'var(--space-4)'
         }}>
           <div>
-            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', wordBreak: 'break-all' }}>
               {session.user?.name || 'Administrator'}
             </p>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', wordBreak: 'break-all' }}>
               {session.user?.email}
             </p>
           </div>
           <Link
             href="/"
-            style={{ fontSize: '0.85rem', color: 'var(--primary)', textDecoration: 'none' }}
+            style={{ fontSize: '0.82rem', color: 'var(--primary)', textDecoration: 'none' }}
           >
             ← Exit to Blog
           </Link>
@@ -115,7 +106,7 @@ export default async function AdminLayout({
       </aside>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: 'var(--space-6)', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+      <main className="admin-main">
         {children}
       </main>
     </div>

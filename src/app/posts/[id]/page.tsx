@@ -50,9 +50,9 @@ export default async function PostDetailPage(props: { params: Promise<{ id: stri
   const initialBookmarked = Boolean(rawBookmark && rawBookmark.length > 0);
 
   return (
-    <main style={{ maxWidth: '800px', margin: '0 auto', padding: 'var(--space-6) var(--space-4)' }}>
+    <main className="main-container">
       <header style={{ marginBottom: 'var(--space-4)' }}>
-        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           ← Back to all posts
         </Link>
       </header>
@@ -80,6 +80,7 @@ export default async function PostDetailPage(props: { params: Promise<{ id: stri
               }
             : null
         }
+        isDetailPage={true}
       />
     </main>
   );

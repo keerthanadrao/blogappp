@@ -79,34 +79,24 @@ export default async function BookmarksPage() {
   }
 
   return (
-    <main style={{ maxWidth: '850px', margin: '0 auto', padding: 'var(--space-6) var(--space-4)' }}>
-      {/* Header */}
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 'var(--space-6)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--border-color)',
-          flexWrap: 'wrap',
-          gap: 'var(--space-4)',
-        }}
-      >
+    <main className="main-container">
+      {/* Responsive Header */}
+      <header className="header-container">
         <div>
           <h1
             id="bookmarks-page-title"
             style={{
-              fontSize: '2.5rem',
+              fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
               background: 'linear-gradient(to right, #818cf8, #c084fc)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               marginBottom: 'var(--space-1)',
+              lineHeight: 1.2
             }}
           >
             🔖 Saved Blogs
           </h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(0.85rem, 2vw, 1rem)' }}>
             Your personal library of bookmarked stories, tutorials, and articles.
           </p>
         </div>

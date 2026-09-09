@@ -318,7 +318,7 @@ function ForgotPasswordForm() {
       style={{
         width: "100%",
         maxWidth: "460px",
-        padding: "var(--space-6)",
+        padding: "clamp(var(--space-4), 5vw, var(--space-6))",
         border: isAdmin
           ? "1px solid rgba(239, 68, 68, 0.4)"
           : "1px solid var(--border-color)",
@@ -341,13 +341,14 @@ function ForgotPasswordForm() {
 
         <h1
           style={{
-            fontSize: "2rem",
+            fontSize: "clamp(1.6rem, 4.5vw, 2rem)",
             marginTop: "var(--space-2)",
             background: isAdmin
               ? "linear-gradient(to right, #ef4444, #f97316)"
               : "linear-gradient(to right, var(--primary), #a855f7)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
+            lineHeight: 1.2
           }}
         >
           {isAdmin ? "Admin Password Recovery" : "Reset Your Password"}

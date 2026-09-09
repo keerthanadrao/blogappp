@@ -10,14 +10,36 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const session = await getServerSession(authOptions);
     
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized. Please log in to like posts.' }, { status: 401 });
     }
     
     const { id: postId } = await context.params;
-    const userId = (session.user as any).id;
-    
-    if (!userId) {
-       return NextResponse.json({ error: 'User ID missing in session' }, { status: 401 });
+    const sessionUserId = (session.user as any).id;
+    const sessionEmail = session.user.email;
+
+    // Verify user exists in database (handles stale cookies/sessions after user cleanups)
+    let user = null;
+    if (sessionUserId) {
+      user = await prisma.user.findUnique({ where: { id: sessionUserId } });
+    }
+    if (!user && sessionEmail) {
+      user = await prisma.user.findUnique({ where: { email: sessionEmail } });
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'User session expired. Please sign in again.' }, { status: 401 });
+    }
+
+    const userId = user.id;
+
+    // Verify post exists
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true }
+    });
+
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found.' }, { status: 404 });
     }
 
     // Check if like exists

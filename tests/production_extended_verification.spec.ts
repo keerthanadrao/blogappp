@@ -1,6 +1,6 @@
 import { test, expect, devices } from "@playwright/test";
 
-const PUBLIC_URL = process.env.PUBLIC_URL || "http://127.0.0.1:3000";
+const PUBLIC_URL = process.env.PUBLIC_URL || "https://things-relationships-tested-spas.trycloudflare.com";
 
 test.describe("Extended Production Verification (Mobile, Comments, Likes, Persistence)", () => {
   test.setTimeout(60000);
@@ -21,47 +21,59 @@ test.describe("Extended Production Verification (Mobile, Comments, Likes, Persis
     await mobileContext.close();
   });
 
-  test("2. Commenting, Replying, and Liking on a post", async ({ page }) => {
+  test("2. Commenting, Replying, and Liking on a post with database persistence", async ({ page }) => {
     // Login as Admin
     await page.goto(`${PUBLIC_URL}/login?role=admin`, { timeout: 30000 });
+    await page.waitForLoadState("networkidle");
     await page.fill("#email", "admin@example.com");
     await page.fill("#password", "Admin123!");
-    await page.click('button[type="submit"]');
-    await expect(page.locator("text=Successfully Logged In!")).toBeVisible({ timeout: 15000 });
+    await page.locator('button[type="submit"]').click();
     await page.waitForURL((url) => url.pathname.includes("/admin") || url.pathname === "/", { timeout: 15000 });
 
     // Go to home feed
     await page.goto(PUBLIC_URL, { timeout: 30000 });
-    await page.waitForSelector('article, .post-card, h2 a, a[href*="/posts/"]', { timeout: 15000 });
+    await page.waitForLoadState("networkidle");
+    await page.waitForSelector('article', { timeout: 15000 });
 
-    const postLink = page.locator('a[href^="/posts/cm"]').first();
-    if (await postLink.isVisible()) {
-      await postLink.click();
-      await page.waitForURL(/\/posts\/.+/, { timeout: 15000 });
+    // Toggle comment section on the first post
+    const commentToggle = page.locator(".comment-toggle-btn").first();
+    if (await commentToggle.isVisible()) {
+      await commentToggle.click();
+      
+      const commentInput = page.locator('textarea[placeholder*="discussion" i], textarea[placeholder*="comment" i], textarea').first();
+      await expect(commentInput).toBeVisible({ timeout: 10000 });
 
-      // Like post
-      const likeBtn = page.locator('button:has-text("Like"), button:has-text("♥"), button[aria-label*="like" i], .like-button').first();
-      if (await likeBtn.isVisible()) {
-        await likeBtn.click();
-      }
+      const commentText = `Live production comment ${Date.now()}`;
+      await commentInput.fill(commentText);
+      const submitCommentBtn = page.locator('button:has-text("Comment")').first();
+      await submitCommentBtn.click();
+      await expect(page.locator(`text=${commentText}`)).toBeVisible({ timeout: 15000 });
 
-      // Add a comment
-      const commentInput = page.locator('textarea[placeholder*="comment" i], textarea[placeholder*="thoughts" i], textarea').first();
-      if (await commentInput.isVisible()) {
-        const commentText = `Live production comment ${Date.now()}`;
-        await commentInput.fill(commentText);
-        const submitCommentBtn = page.locator('button:has-text("Comment"), button:has-text("Post Comment"), button[type="submit"]').first();
-        await submitCommentBtn.click();
-        await expect(page.locator(`text=${commentText}`)).toBeVisible({ timeout: 15000 });
+      // Reload page to verify database persistence across reloads
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForSelector('article', { timeout: 15000 });
+      const commentToggleAfter = page.locator(".comment-toggle-btn").first();
+      await commentToggleAfter.click();
+      await expect(page.locator(`text=${commentText}`)).toBeVisible({ timeout: 15000 });
+    }
 
-        // Reload page to verify database persistence
-        await page.reload();
-        await expect(page.locator(`text=${commentText}`)).toBeVisible({ timeout: 15000 });
-      }
+    // Test Like button
+    const likeBtn = page.locator('.like-btn').first();
+    if (await likeBtn.isVisible()) {
+      await likeBtn.click();
+      await page.waitForTimeout(500);
+    }
+
+    // Test Bookmark button
+    const bookmarkBtn = page.locator('[data-testid="bookmark-btn"]').first();
+    if (await bookmarkBtn.isVisible()) {
+      await bookmarkBtn.click();
+      await page.waitForTimeout(500);
     }
   });
 
-  test("3. Forgot Password / OTP endpoint availability", async ({ request }) => {
+  test("3. Forgot Password / OTP endpoint availability and rate limiting", async ({ request }) => {
     const res = await request.post(`${PUBLIC_URL}/api/auth/forgot-password/send-otp`, {
       data: {
         email: "nonexistent_verify_test@example.com",

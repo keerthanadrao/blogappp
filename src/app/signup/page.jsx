@@ -109,7 +109,7 @@ function SignupForm() {
             <div className="card" style={{ 
                 width: '100%', 
                 maxWidth: '460px', 
-                padding: 'var(--space-6)',
+                padding: 'clamp(var(--space-4), 5vw, var(--space-6))',
                 border: role === 'admin' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
                 boxShadow: role === 'admin' ? '0 8px 32px rgba(239, 68, 68, 0.15)' : '0 8px 32px rgba(0, 0, 0, 0.5)'
             }}>
@@ -118,17 +118,18 @@ function SignupForm() {
                     ← Back to Blog
                 </Link>
                 <h1 style={{ 
-                    fontSize: '2.2rem', 
+                    fontSize: 'clamp(1.6rem, 4.5vw, 2.2rem)', 
                     marginTop: 'var(--space-2)',
                     background: role === 'admin' 
                         ? 'linear-gradient(to right, #ef4444, #f97316)' 
                         : 'linear-gradient(to right, var(--primary), #a855f7)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
+                    lineHeight: 1.2
                 }}>
                     {role === 'admin' ? 'Admin Registration' : 'Create Account'}
                 </h1>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginTop: 'var(--space-1)' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(0.85rem, 2vw, 0.95rem)', marginTop: 'var(--space-1)' }}>
                     {role === 'admin' 
                         ? 'Register an administrator account with security key (Single Admin System)' 
                         : 'Join the community with your favorite account or email'}

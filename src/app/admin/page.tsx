@@ -246,6 +246,7 @@ export default function AdminDashboard() {
             display: 'flex',
             gap: 'var(--space-3)',
             marginBottom: 'var(--space-4)',
+            flexWrap: 'wrap',
           }}
         >
           <input
@@ -253,7 +254,7 @@ export default function AdminDashboard() {
             placeholder="New Category Name"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            style={{ flex: 1 }}
+            style={{ flex: 1, minWidth: '200px' }}
             disabled={loading}
           />
 
@@ -262,12 +263,14 @@ export default function AdminDashboard() {
           </button>
         </form>
 
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-          }}
-        >
+        <div className="table-responsive">
+          <table
+            style={{
+              width: '100%',
+              minWidth: '320px',
+              borderCollapse: 'collapse',
+            }}
+          >
           <thead>
             <tr
               style={{
@@ -397,6 +400,7 @@ export default function AdminDashboard() {
             )}
           </tbody>
         </table>
+        </div>
       </section>
 
       <section className="card">
@@ -404,12 +408,14 @@ export default function AdminDashboard() {
           Manage Posts
         </h2>
 
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-          }}
-        >
+        <div className="table-responsive">
+          <table
+            style={{
+              width: '100%',
+              minWidth: '540px',
+              borderCollapse: 'collapse',
+            }}
+          >
           <thead>
             <tr
               style={{
@@ -504,6 +510,7 @@ export default function AdminDashboard() {
             )}
           </tbody>
         </table>
+        </div>
       </section>
     </div>
   );

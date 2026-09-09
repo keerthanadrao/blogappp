@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import BlogFeed from '../components/BlogFeed';
 import AuthNav from '../components/AuthNav';
+import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]/route';
 
@@ -56,28 +57,57 @@ export default async function Home() {
   }));
 
   return (
-    <main style={{ maxWidth: '850px', margin: '0 auto', padding: 'var(--space-6) var(--space-4)' }}>
-      {/* Premium Header */}
-      <header style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: 'var(--space-6)',
-        paddingBottom: 'var(--space-4)',
-        borderBottom: '1px solid var(--border-color)'
-      }}>
-        <div>
-          <h1 style={{ 
-            fontSize: '3rem', 
-            background: 'linear-gradient(to right, var(--primary), #a855f7)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            marginBottom: 'var(--space-1)'
-          }}>
-            Antigravity Blog
-          </h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Discover the latest stories, topics, and insights.</p>
+    <main className="main-container">
+      {/* 🧭 Astra Clean Editorial Masthead Header */}
+      <header className="header-container">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link
+            href="/"
+            style={{
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, var(--primary) 0%, #818cf8 100%)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.2rem',
+                fontWeight: 800,
+                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+              }}
+            >
+              ✦
+            </div>
+            <div>
+              <h1
+                style={{
+                  fontSize: 'clamp(1.35rem, 3.2vw, 1.85rem)',
+                  fontWeight: 800,
+                  letterSpacing: '-0.025em',
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                  lineHeight: 1.15,
+                }}
+              >
+                Antigravity Blog
+              </h1>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0, fontWeight: 500 }}>
+                Ideas • Design • Technology • Culture
+              </p>
+            </div>
+          </Link>
         </div>
+
+        {/* Right Navigation */}
         <AuthNav 
           user={session?.user ? {
             id: (session.user as any).id,
@@ -88,7 +118,7 @@ export default async function Home() {
         />
       </header>
 
-      {/* Main Feed with Search & Filters */}
+      {/* 📰 Main Feed with Hero, Category Discovery, Featured Post & Grid */}
       <BlogFeed 
         initialPosts={serializedPosts}
         categories={categories}

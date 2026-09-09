@@ -76,18 +76,9 @@ export default async function ProfilePage() {
   };
 
   return (
-    <main style={{ maxWidth: '850px', margin: '0 auto', padding: 'var(--space-6) var(--space-4)' }}>
-      {/* Header */}
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 'var(--space-6)',
-          paddingBottom: 'var(--space-4)',
-          borderBottom: '1px solid var(--border-color)',
-        }}
-      >
+    <main className="main-container">
+      {/* Responsive Header */}
+      <header className="header-container">
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <Link href="/" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
             ← Back to Home

@@ -15,62 +15,143 @@ interface AuthNavProps {
 
 export default function AuthNav({ user }: AuthNavProps) {
   if (user) {
+    const displayName = user.name || user.email?.split('@')[0] || 'User';
+    const initial = displayName.charAt(0).toUpperCase();
+
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <Link
-            id="nav-profile-user-link"
-            href="/profile"
-            style={{ fontSize: '0.95rem', color: 'var(--text-primary)', fontWeight: 500, textDecoration: 'none' }}
+      <div className="nav-links-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        {/* User Identity Pill (Clicking goes to /profile) */}
+        <Link
+          id="nav-profile-user-link"
+          href="/profile"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '4px 10px 4px 6px',
+            borderRadius: 'var(--radius-pill)',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid var(--border-color)',
+            textDecoration: 'none',
+            color: 'var(--text-primary)',
+            transition: 'all var(--transition-fast)',
+          }}
+          title={user.name || user.email || ''}
+        >
+          <div
+            style={{
+              width: '26px',
+              height: '26px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, var(--primary), #818cf8)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+            }}
           >
-            {user.name || user.email}
-          </Link>
+            {initial}
+          </div>
+          <span
+            style={{
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              maxWidth: '120px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {displayName}
+          </span>
           {user.role === 'ADMIN' ? (
-            <span 
-              className="badge" 
-              style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.4)' }}
+            <span
+              className="badge"
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                color: '#f87171',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                fontSize: '0.65rem',
+                padding: '1px 5px',
+              }}
             >
               ADMIN
             </span>
           ) : (
-            <span className="badge badge-primary">
+            <span
+              className="badge badge-primary"
+              style={{
+                fontSize: '0.65rem',
+                padding: '1px 5px',
+              }}
+            >
               AUTHOR
             </span>
           )}
-        </div>
+        </Link>
 
-        <Link id="nav-profile-link" href="/profile" className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: '0.9rem' }}>
+        {/* Navigation Quick Links */}
+        <Link
+          id="nav-profile-link"
+          href="/profile"
+          className="btn btn-secondary"
+          style={{ padding: '6px 12px', fontSize: '0.84rem' }}
+        >
           👤 Profile
         </Link>
-        <Link id="nav-bookmarks-link" href="/bookmarks" className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: '0.9rem' }}>
+
+        <Link
+          id="nav-bookmarks-link"
+          href="/bookmarks"
+          className="btn btn-secondary"
+          style={{ padding: '6px 12px', fontSize: '0.84rem' }}
+        >
           🔖 Bookmarks
         </Link>
-        <Link href="/posts/new" className="btn btn-primary" style={{ padding: '6px 14px', fontSize: '0.9rem' }}>
-          + Write Post
-        </Link>
-        <Link href="/my-posts" className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: '0.9rem' }}>
+
+        <Link
+          href="/my-posts"
+          className="btn btn-secondary"
+          style={{ padding: '6px 12px', fontSize: '0.84rem' }}
+        >
           My Posts
         </Link>
+
         {user.role === 'ADMIN' && (
-          <Link 
-            href="/admin" 
-            className="btn" 
-            style={{ 
-              padding: '6px 14px', 
-              fontSize: '0.9rem',
+          <Link
+            href="/admin"
+            className="btn"
+            style={{
+              padding: '6px 12px',
+              fontSize: '0.84rem',
               background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
               color: '#ffffff',
-              boxShadow: '0 2px 10px rgba(99, 102, 241, 0.3)'
+              boxShadow: '0 2px 10px rgba(99, 102, 241, 0.3)',
             }}
           >
-            ⚙️ Admin Dashboard
+            ⚙️ Admin
           </Link>
         )}
+
+        <Link
+          href="/posts/new"
+          className="btn btn-primary"
+          style={{ padding: '6px 14px', fontSize: '0.85rem', fontWeight: 600 }}
+        >
+          + Write Post
+        </Link>
+
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: '/' })}
           className="btn btn-secondary"
-          style={{ padding: '6px 12px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}
+          style={{
+            padding: '6px 10px',
+            fontSize: '0.82rem',
+            color: 'var(--text-secondary)',
+          }}
         >
           Sign Out
         </button>
@@ -79,22 +160,22 @@ export default function AuthNav({ user }: AuthNavProps) {
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-      <Link href="/login" className="btn btn-secondary" style={{ padding: '8px 16px' }}>
+    <div className="nav-links-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+      <Link href="/login" className="btn btn-secondary" style={{ padding: '7px 14px', fontSize: '0.88rem' }}>
         Login
       </Link>
-      <Link href="/signup" className="btn btn-primary" style={{ padding: '8px 16px' }}>
+      <Link href="/signup" className="btn btn-primary" style={{ padding: '7px 16px', fontSize: '0.88rem' }}>
         Sign Up
       </Link>
-      <Link 
-        href="/admin" 
+      <Link
+        href="/admin"
         className="btn"
-        style={{ 
-          padding: '8px 14px', 
-          fontSize: '0.85rem',
+        style={{
+          padding: '7px 12px',
+          fontSize: '0.84rem',
           border: '1px solid var(--border-color)',
-          background: 'rgba(24, 24, 27, 0.8)',
-          color: '#a1a1aa'
+          background: 'rgba(255, 255, 255, 0.04)',
+          color: 'var(--text-secondary)',
         }}
       >
         🛡️ Admin Portal

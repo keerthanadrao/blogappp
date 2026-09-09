@@ -433,13 +433,49 @@ export default function UserProfileView({ user: initialUser, isOwnProfile = fals
 
           {/* Action Buttons */}
           {isOwnProfile && (
-            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center' }}>
+              <Link
+                href="/posts/new"
+                className="btn btn-primary"
+                style={{ padding: '8px 16px', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                + Write Post
+              </Link>
+              <Link
+                href="/my-posts"
+                className="btn btn-secondary"
+                style={{ padding: '8px 14px', fontSize: '0.88rem' }}
+              >
+                My Posts
+              </Link>
+              <Link
+                href="/bookmarks"
+                className="btn btn-secondary"
+                style={{ padding: '8px 14px', fontSize: '0.88rem' }}
+              >
+                🔖 Bookmarks
+              </Link>
+              {user.role === 'ADMIN' && (
+                <Link
+                  href="/admin"
+                  className="btn"
+                  style={{
+                    padding: '8px 14px',
+                    fontSize: '0.88rem',
+                    background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                    color: '#ffffff',
+                    boxShadow: '0 2px 10px rgba(99, 102, 241, 0.3)',
+                  }}
+                >
+                  ⚙️ Admin Dashboard
+                </Link>
+              )}
               <button
                 id="edit-profile-btn"
                 type="button"
                 onClick={() => setIsEditing(!isEditing)}
                 className="btn btn-secondary"
-                style={{ padding: '8px 18px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                style={{ padding: '8px 14px', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}
               >
                 ✏️ {isEditing ? 'Cancel Edit' : 'Edit Profile'}
               </button>
@@ -505,7 +541,7 @@ export default function UserProfileView({ user: initialUser, isOwnProfile = fals
                   type="button"
                   className="btn btn-primary"
                   onClick={() => {
-                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    if (typeof navigator !== 'undefined' && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
                       startLiveWebcam();
                     } else {
                       setShowPhotoModal(false);
@@ -715,7 +751,7 @@ export default function UserProfileView({ user: initialUser, isOwnProfile = fals
                     id="form-camera-btn"
                     type="button"
                     onClick={() => {
-                      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                      if (typeof navigator !== 'undefined' && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
                         startLiveWebcam();
                       } else {
                         cameraInputRef.current?.click();

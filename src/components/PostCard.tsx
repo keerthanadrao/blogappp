@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import LikeListModal from './LikeListModal';
 import CommentSection from './CommentSection';
@@ -29,6 +30,8 @@ interface PostCardProps {
   } | null;
   onTagClick?: (tag: string) => void;
   onBookmarkToggle?: (postId: string, isBookmarked: boolean) => void;
+  featured?: boolean;
+  isDetailPage?: boolean;
 }
 
 export default function PostCard({
@@ -39,6 +42,8 @@ export default function PostCard({
   currentUser,
   onTagClick,
   onBookmarkToggle,
+  featured = false,
+  isDetailPage = false,
 }: PostCardProps) {
   const router = useRouter();
   const [liked, setLiked] = useState(initialLiked);
@@ -52,12 +57,8 @@ export default function PostCard({
   const [imageError, setImageError] = useState(false);
   const [authorImageError, setAuthorImageError] = useState(false);
 
-  const handleBookmark = async () => {
-    if (!userAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
+  const handleBookmark = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (isBookmarking) return;
 
     const nextBookmarkedState = !bookmarked;
@@ -70,6 +71,14 @@ export default function PostCard({
 
     try {
       const res = await fetch(`/api/posts/${post.id}/bookmark`, { method: 'POST' });
+      if (res.status === 401) {
+        setBookmarked(bookmarked);
+        if (onBookmarkToggle) {
+          onBookmarkToggle(post.id, bookmarked);
+        }
+        router.push('/login');
+        return;
+      }
       const data = await res.json();
 
       if (res.ok) {
@@ -97,12 +106,8 @@ export default function PostCard({
     }
   };
 
-  const handleLike = async () => {
-    if (!userAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
+  const handleLike = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (isLiking) return;
 
     setIsLiking(true);
@@ -112,6 +117,12 @@ export default function PostCard({
 
     try {
       const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' });
+      if (res.status === 401) {
+        setLiked(liked);
+        setLikeCount(post._count.likes);
+        router.push('/login');
+        return;
+      }
       const data = await res.json();
 
       if (res.ok) {
@@ -146,89 +157,163 @@ export default function PostCard({
   };
 
   const authorName = post.author?.name || post.author?.email || 'Anonymous Author';
+  
+  // Calculate reading time estimation
+  const wordCount = post.body.trim().split(/\s+/).length;
+  const readingTimeMinutes = Math.max(1, Math.ceil(wordCount / 180));
+
+  const tagList = post.tags 
+    ? post.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
+    : (post.body.match(/#([a-zA-Z0-9_-]+)/g) || []).map(t => t.replace('#', ''));
 
   return (
     <>
       <article
-        className="card"
+        className="card astra-card"
         style={{
           position: 'relative',
-          overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
           gap: 'var(--space-3)',
+          background: 'var(--surface-color)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-color)',
+          padding: 'var(--space-4)',
+          overflow: 'hidden',
+          transition: 'transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal)',
         }}
       >
-        {/* Cover Image Banner */}
+        {/* Cover Image */}
         {post.cover_image_url && !imageError && (
           <div
+            className="card-image-wrap"
             style={{
               width: '100%',
-              maxHeight: '340px',
+              height: featured ? 'clamp(220px, 38vw, 360px)' : 'clamp(190px, 28vw, 240px)',
               overflow: 'hidden',
               borderRadius: 'var(--radius-md)',
-              marginBottom: 'var(--space-1)',
-              backgroundColor: 'rgba(0,0,0,0.3)',
+              position: 'relative',
             }}
           >
-            <img
-              ref={handleCoverImgRef}
-              src={post.cover_image_url}
-              alt={post.title}
-              onError={() => setImageError(true)}
+            <Link href={`/posts/${post.id}`} style={{ display: 'block', width: '100%', height: '100%' }}>
+              <img
+                ref={handleCoverImgRef}
+                src={post.cover_image_url}
+                alt={post.title}
+                onError={() => setImageError(true)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            </Link>
+
+            {/* Category badge overlay on top-right of image */}
+            {post.category && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  background: 'rgba(15, 23, 42, 0.85)',
+                  color: '#818cf8',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-pill)',
+                  fontSize: '0.72rem',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(129, 140, 248, 0.35)',
+                  zIndex: 2,
+                }}
+              >
+                {post.category.name}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Category badge if no cover image */}
+        {(!post.cover_image_url || imageError) && post.category && (
+          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <span
               style={{
-                width: '100%',
-                maxHeight: '340px',
-                objectFit: 'cover',
-                display: 'block',
+                background: 'rgba(99, 102, 241, 0.12)',
+                color: '#818cf8',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-pill)',
+                fontSize: '0.72rem',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                border: '1px solid rgba(99, 102, 241, 0.25)',
               }}
-            />
+            >
+              {post.category.name}
+            </span>
           </div>
         )}
 
-        {/* Category Badge */}
-        {post.category && (
-          <div
+        {/* Title */}
+        {isDetailPage ? (
+          <h1
             style={{
-              position: 'absolute',
-              top: 'var(--space-4)',
-              right: 'var(--space-4)',
-              background: 'rgba(99, 102, 241, 0.1)',
-              color: 'var(--primary)',
-              padding: '4px 12px',
-              borderRadius: 'var(--radius-pill)',
-              fontSize: '0.8rem',
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              fontSize: 'clamp(1.75rem, 4.5vw, 2.6rem)',
+              fontWeight: 800,
+              lineHeight: 1.25,
+              margin: '4px 0 2px 0',
+              color: 'var(--text-primary)',
+              letterSpacing: '-0.02em',
             }}
           >
-            {post.category.name}
-          </div>
+            {post.title}
+          </h1>
+        ) : (
+          <h2
+            style={{
+              fontSize: featured ? 'clamp(1.4rem, 4vw, 2.1rem)' : 'clamp(1.2rem, 3vw, 1.55rem)',
+              fontWeight: 700,
+              lineHeight: 1.3,
+              margin: '2px 0 0 0',
+            }}
+          >
+            <Link
+              href={`/posts/${post.id}`}
+              style={{
+                color: 'var(--text-primary)',
+                textDecoration: 'none',
+                transition: 'color var(--transition-fast)',
+              }}
+            >
+              {post.title}
+            </Link>
+          </h2>
         )}
 
-        <h2 style={{ fontSize: '2rem', paddingRight: '100px' }}>{post.title}</h2>
-
-        {/* Author Details Row */}
+        {/* Author Details & Date Bar */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--space-2)',
+            gap: '10px',
             color: 'var(--text-secondary)',
-            fontSize: '0.9rem',
+            fontSize: '0.86rem',
+            margin: '2px 0',
           }}
         >
-          {/* Author Profile Image Icon */}
+          {/* Author Avatar Icon */}
           <div
             className="author-avatar-icon"
             data-testid="author-avatar"
             style={{
-              width: '36px',
-              height: '36px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
               overflow: 'hidden',
-              background: 'linear-gradient(135deg, var(--primary), #a855f7)',
+              background: 'linear-gradient(135deg, var(--primary), #818cf8)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -253,16 +338,17 @@ export default function PostCard({
                 }}
               />
             ) : (
-              <span className="author-avatar-fallback" style={{ fontSize: '0.95rem' }}>
+              <span className="author-avatar-fallback" style={{ fontSize: '0.85rem' }}>
                 {authorName.charAt(0).toUpperCase()}
               </span>
             )}
           </div>
-          <div>
-            <span className="author-name" style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <span className="author-name" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
               {authorName}
             </span>
-            <span style={{ margin: '0 8px' }}>•</span>
+            <span>•</span>
             <span>
               {new Date(post.createdAt).toLocaleDateString('en-US', {
                 month: 'short',
@@ -270,191 +356,229 @@ export default function PostCard({
                 year: 'numeric',
               })}
             </span>
+            <span style={{ color: 'var(--text-muted)' }}>—</span>
+            <span style={{ color: 'var(--text-muted)' }}>{readingTimeMinutes} min read</span>
           </div>
         </div>
 
+        {/* Excerpt / Body */}
         <div
           style={{
-            margin: 'var(--space-2) 0',
-            lineHeight: '1.8',
-            color: '#d4d4d8',
-            fontSize: '1.05rem',
+            color: isDetailPage ? '#e2e8f0' : 'var(--text-secondary)',
+            fontSize: isDetailPage ? '1.05rem' : '0.94rem',
+            lineHeight: isDetailPage ? 1.8 : 1.65,
+            margin: isDetailPage ? '12px 0 16px 0' : '6px 0',
             whiteSpace: 'pre-wrap',
+            ...(isDetailPage
+              ? {}
+              : {
+                  display: '-webkit-box',
+                  WebkitLineClamp: featured ? 8 : 6,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }),
           }}
         >
           {post.body}
         </div>
 
         {/* Tags */}
-        {(() => {
-          const tagList = post.tags 
-            ? post.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
-            : (post.body.match(/#([a-zA-Z0-9_-]+)/g) || []).map(t => t.replace('#', ''));
-          if (tagList.length === 0) return null;
-          return (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: 'var(--space-1)' }}>
-              {tagList.map((tag, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className="post-tag-chip"
-                  data-tag={tag.toLowerCase()}
-                  style={{
-                    fontSize: '0.8rem',
-                    padding: '3px 10px',
-                    borderRadius: 'var(--radius-pill)',
-                    background: 'rgba(168, 85, 247, 0.12)',
-                    color: '#c084fc',
-                    border: '1px solid rgba(168, 85, 247, 0.3)',
-                    cursor: onTagClick ? 'pointer' : 'default',
-                    fontWeight: 500,
-                    transition: 'all 0.15s ease',
-                  }}
-                  onClick={() => onTagClick && onTagClick(tag)}
-                >
-                  #{tag}
-                </button>
-              ))}
-            </div>
-          );
-        })()}
+        {tagList.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', margin: '2px 0 4px 0' }}>
+            {tagList.map((tag, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className="post-tag-chip"
+                data-tag={tag.toLowerCase()}
+                style={{
+                  fontSize: '0.78rem',
+                  padding: '2px 9px',
+                  borderRadius: 'var(--radius-pill)',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  color: '#c084fc',
+                  border: '1px solid rgba(192, 132, 252, 0.22)',
+                  cursor: onTagClick ? 'pointer' : 'default',
+                  fontWeight: 500,
+                  transition: 'all var(--transition-fast)',
+                }}
+                onClick={() => onTagClick && onTagClick(tag)}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* Engagement Footer */}
+        {/* Engagement & Action Footer */}
         <div
           style={{
             display: 'flex',
-            gap: 'var(--space-4)',
-            color: 'var(--text-secondary)',
-            fontSize: '0.95rem',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             borderTop: '1px solid var(--border-color)',
             paddingTop: 'var(--space-3)',
-            marginTop: 'var(--space-2)',
+            marginTop: 'auto',
+            gap: 'var(--space-2)',
+            flexWrap: 'wrap',
           }}
         >
-          {/* Like Button */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Social Interactions Group (Left) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {/* Like Button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                onClick={handleLike}
+                disabled={isLiking}
+                title={liked ? 'Unlike' : 'Like'}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: isLiking ? 'default' : 'pointer',
+                  color: liked ? 'var(--danger)' : 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '4px',
+                  borderRadius: 'var(--radius-sm)',
+                  transition: 'color 0.2s, transform 0.15s ease',
+                  transform: liked ? 'scale(1.08)' : 'scale(1)',
+                }}
+                className="like-btn"
+              >
+                <svg
+                  width="19"
+                  height="19"
+                  fill={liked ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+              </button>
+              <span
+                onClick={() => likeCount > 0 && setShowLikers(true)}
+                style={{
+                  cursor: likeCount > 0 ? 'pointer' : 'default',
+                  fontSize: '0.88rem',
+                  fontWeight: 600,
+                  color: liked ? 'var(--danger)' : 'var(--text-secondary)',
+                }}
+                className="like-count"
+              >
+                {likeCount}
+              </span>
+            </div>
+
+            {/* Comment Toggle Button */}
             <button
-              onClick={handleLike}
-              disabled={isLiking}
-              title={liked ? 'Unlike' : 'Like'}
+              onClick={() => setShowComments(!showComments)}
+              className="comment-toggle-btn"
               style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: isLiking ? 'default' : 'pointer',
-                color: liked ? 'var(--danger)' : 'var(--text-secondary)',
                 display: 'flex',
                 alignItems: 'center',
-                padding: 0,
-                transition: 'color 0.2s, transform 0.1s',
+                gap: '6px',
+                cursor: 'pointer',
+                background: 'none',
+                border: 'none',
+                color: showComments ? 'var(--primary-light)' : 'var(--text-secondary)',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                padding: '4px',
+                borderRadius: 'var(--radius-sm)',
+                transition: 'color 0.2s',
               }}
-              className="like-btn"
+              title="Toggle comments"
+            >
+              <svg width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              <span className="comment-count">{commentCount}</span>
+            </button>
+
+            {/* Bookmark / Save Blog Button */}
+            <button
+              id={`bookmark-btn-${post.id}`}
+              data-testid="bookmark-btn"
+              onClick={handleBookmark}
+              disabled={isBookmarking}
+              className="bookmark-btn"
+              title={bookmarked ? 'Remove from Saved Blogs' : 'Save / Bookmark Blog'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                cursor: isBookmarking ? 'default' : 'pointer',
+                background: 'none',
+                border: 'none',
+                color: bookmarked ? '#818cf8' : 'var(--text-secondary)',
+                fontSize: '0.88rem',
+                padding: '4px',
+                transition: 'all 0.2s ease',
+              }}
             >
               <svg
-                width="20"
-                height="20"
-                fill={liked ? 'currentColor' : 'none'}
-                stroke="currentColor"
+                width="19"
+                height="19"
+                fill={bookmarked ? '#818cf8' : 'none'}
+                stroke={bookmarked ? '#818cf8' : 'currentColor'}
                 strokeWidth="2"
                 viewBox="0 0 24 24"
+                style={{
+                  transition: 'transform 0.15s ease',
+                  transform: bookmarked ? 'scale(1.1)' : 'scale(1)',
+                }}
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                 />
               </svg>
+              <span style={{ fontSize: '0.84rem', fontWeight: bookmarked ? '600' : '400' }}>
+                {bookmarked ? 'Saved' : 'Save'}
+              </span>
             </button>
-            <span
-              onClick={() => likeCount > 0 && setShowLikers(true)}
-              style={{ cursor: likeCount > 0 ? 'pointer' : 'default' }}
-              className="like-count"
-            >
-              {likeCount}
-            </span>
           </div>
 
-          {/* Comment Toggle Button */}
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="comment-toggle-btn"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              cursor: 'pointer',
-              background: 'none',
-              border: 'none',
-              color: showComments ? 'var(--primary)' : 'var(--text-secondary)',
-              fontSize: '0.95rem',
-              padding: 0,
-              transition: 'color 0.2s',
-            }}
-            title="Toggle comments"
-          >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
-            </svg>
-            <span className="comment-count">{commentCount}</span>
-          </button>
-
-          {/* Bookmark / Save Blog Button */}
-          <button
-            id={`bookmark-btn-${post.id}`}
-            data-testid="bookmark-btn"
-            onClick={handleBookmark}
-            disabled={isBookmarking}
-            className="bookmark-btn"
-            title={bookmarked ? 'Remove from Saved Blogs' : 'Save / Bookmark Blog'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              cursor: isBookmarking ? 'default' : 'pointer',
-              background: 'none',
-              border: 'none',
-              color: bookmarked ? '#818cf8' : 'var(--text-secondary)',
-              fontSize: '0.95rem',
-              padding: 0,
-              marginLeft: 'auto',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <svg
-              width="20"
-              height="20"
-              fill={bookmarked ? '#818cf8' : 'none'}
-              stroke={bookmarked ? '#818cf8' : 'currentColor'}
-              strokeWidth="2"
-              viewBox="0 0 24 24"
+          {/* Read Article Action (Right) */}
+          {!isDetailPage && (
+            <Link
+              href={`/posts/${post.id}`}
               style={{
-                transition: 'transform 0.15s ease',
-                transform: bookmarked ? 'scale(1.1)' : 'scale(1)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                color: 'var(--primary-light)',
+                fontSize: '0.86rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                transition: 'gap var(--transition-fast)',
               }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-              />
-            </svg>
-            <span style={{ fontSize: '0.88rem', fontWeight: bookmarked ? '600' : '400' }}>
-              {bookmarked ? 'Saved' : 'Save'}
-            </span>
-          </button>
+              Read →
+            </Link>
+          )}
         </div>
 
         {/* Expandable Comment Section */}
         {showComments && (
-          <CommentSection
-            postId={post.id}
-            currentUser={currentUser || null}
-            initialCommentCount={commentCount}
-            onCommentCountChange={(newCount) => setCommentCount(newCount)}
-          />
+          <div style={{ marginTop: 'var(--space-2)' }}>
+            <CommentSection
+              postId={post.id}
+              currentUser={currentUser || null}
+              initialCommentCount={commentCount}
+              onCommentCountChange={(newCount) => setCommentCount(newCount)}
+            />
+          </div>
         )}
       </article>
 
