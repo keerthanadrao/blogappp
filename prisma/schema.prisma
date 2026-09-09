@@ -33,6 +33,7 @@ model Post {
   title           String
   body            String
   cover_image_url String?
+  tags            String?   // comma-separated tags e.g. "tech, webdev, react"
   status          String    @default("DRAFT") // DRAFT or PUBLISHED
   authorId        String
   author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)

@@ -66,7 +66,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { title, body, categoryId, status, cover_image_url } = await request.json();
+    const { title, body, categoryId, status, cover_image_url, tags } = await request.json();
 
     if (cover_image_url && typeof cover_image_url === 'string' && cover_image_url.trim()) {
       try {
@@ -89,6 +89,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         categoryId: categoryId || undefined,
         status: postStatus,
         cover_image_url: cover_image_url !== undefined ? cover_image_url : undefined,
+        tags: tags !== undefined ? tags : undefined,
       },
     });
 

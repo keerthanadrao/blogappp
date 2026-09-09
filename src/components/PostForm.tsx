@@ -16,6 +16,7 @@ interface PostFormProps {
     categoryId: string;
     status: 'DRAFT' | 'PUBLISHED';
     cover_image_url?: string | null;
+    tags?: string | null;
   };
   isEditing?: boolean;
 }
@@ -29,6 +30,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
   const [body, setBody] = useState(initialData?.body || '');
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || '');
   const [coverImageUrl, setCoverImageUrl] = useState(initialData?.cover_image_url || '');
+  const [tags, setTags] = useState(initialData?.tags || '');
   const [imagePreviewError, setImagePreviewError] = useState(false);
   
   const [saving, setSaving] = useState(false);
@@ -87,6 +89,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
           categoryId,
           status,
           cover_image_url: trimmedImageUrl || null,
+          tags: tags.trim() || null,
         }),
       });
 
@@ -167,6 +170,28 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label htmlFor="tags-input" style={{ display: 'block', marginBottom: 'var(--space-2)', fontWeight: '600' }}>
+            Tags <span style={{ color: 'var(--text-secondary)', fontWeight: 'normal', fontSize: '0.9rem' }}>(Optional, comma-separated)</span>
+          </label>
+          <input 
+            id="tags-input"
+            type="text" 
+            value={tags} 
+            onChange={e => setTags(e.target.value)} 
+            placeholder="e.g. tech, javascript, react, tutorial"
+            style={{ 
+              width: '100%', 
+              padding: '12px 16px', 
+              borderRadius: 'var(--radius-md)', 
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-color)',
+              color: 'var(--text-primary)',
+              fontSize: '1rem'
+            }}
+          />
         </div>
 
         <div>

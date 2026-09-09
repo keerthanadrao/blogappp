@@ -15,6 +15,7 @@ interface PostCardProps {
     category: { name: string } | null;
     _count: { likes: number; comments: number };
     cover_image_url?: string | null;
+    tags?: string | null;
   };
   initialLiked: boolean;
   userAuthenticated: boolean;
@@ -24,9 +25,10 @@ interface PostCardProps {
     email: string;
     role: string;
   } | null;
+  onTagClick?: (tag: string) => void;
 }
 
-export default function PostCard({ post, initialLiked, userAuthenticated, currentUser }: PostCardProps) {
+export default function PostCard({ post, initialLiked, userAuthenticated, currentUser, onTagClick }: PostCardProps) {
   const router = useRouter();
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(post._count.likes);
@@ -183,6 +185,40 @@ export default function PostCard({ post, initialLiked, userAuthenticated, curren
         >
           {post.body}
         </div>
+
+        {/* Tags */}
+        {(() => {
+          const tagList = post.tags 
+            ? post.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
+            : (post.body.match(/#([a-zA-Z0-9_-]+)/g) || []).map(t => t.replace('#', ''));
+          if (tagList.length === 0) return null;
+          return (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: 'var(--space-1)' }}>
+              {tagList.map((tag, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="post-tag-chip"
+                  data-tag={tag.toLowerCase()}
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '3px 10px',
+                    borderRadius: 'var(--radius-pill)',
+                    background: 'rgba(168, 85, 247, 0.12)',
+                    color: '#c084fc',
+                    border: '1px solid rgba(168, 85, 247, 0.3)',
+                    cursor: onTagClick ? 'pointer' : 'default',
+                    fontWeight: 500,
+                    transition: 'all 0.15s ease',
+                  }}
+                  onClick={() => onTagClick && onTagClick(tag)}
+                >
+                  #{tag}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Engagement Footer */}
         <div
