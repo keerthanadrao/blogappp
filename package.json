@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@supabase/server": "^1.6.0",
     "bcryptjs": "^3.0.3",
     "next": "16.3.4",
     "next-auth": "^4.24.15",
