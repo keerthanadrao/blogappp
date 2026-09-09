@@ -38,6 +38,9 @@ export default async function PostDetailPage(props: { params: Promise<{ id: stri
     notFound();
   }
 
+  const rawAuthor: any[] = await prisma.$queryRaw`SELECT image FROM User WHERE id = ${post.authorId}`;
+  const authorImage = rawAuthor?.[0]?.image || (post.author as any)?.image || null;
+
   const initialLiked = userId && post.likes && post.likes.length > 0;
 
   return (
@@ -52,6 +55,10 @@ export default async function PostDetailPage(props: { params: Promise<{ id: stri
         post={{
           ...post,
           createdAt: post.createdAt.toISOString(),
+          author: {
+            ...post.author,
+            image: authorImage
+          }
         }}
         initialLiked={!!initialLiked}
         userAuthenticated={!!session}

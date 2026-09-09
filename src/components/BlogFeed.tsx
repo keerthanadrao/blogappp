@@ -9,8 +9,7 @@ interface PostData {
   body: string;
   createdAt: string;
   cover_image_url?: string | null;
-  tags?: string | null;
-  author: { name: string | null; email: string };
+  author?: { id?: string; name: string | null; email: string; image?: string | null } | null;
   category: { id?: string; name: string } | null;
   _count: { likes: number; comments: number };
   likes?: { userId: string }[] | boolean;

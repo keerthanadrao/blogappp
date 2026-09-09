@@ -11,7 +11,7 @@ interface PostCardProps {
     title: string;
     body: string;
     createdAt: string;
-    author: { name: string | null; email: string };
+    author?: { id?: string; name: string | null; email: string; image?: string | null } | null;
     category: { name: string } | null;
     _count: { likes: number; comments: number };
     cover_image_url?: string | null;
@@ -37,6 +37,7 @@ export default function PostCard({ post, initialLiked, userAuthenticated, curren
   const [showComments, setShowComments] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [authorImageError, setAuthorImageError] = useState(false);
 
   const handleLike = async () => {
     if (!userAuthenticated) {
@@ -74,7 +75,19 @@ export default function PostCard({ post, initialLiked, userAuthenticated, curren
     }
   };
 
-  const authorName = post.author.name || post.author.email;
+  const handleAuthorImgRef = (node: HTMLImageElement | null) => {
+    if (node && node.complete && node.naturalWidth === 0) {
+      setAuthorImageError(true);
+    }
+  };
+
+  const handleCoverImgRef = (node: HTMLImageElement | null) => {
+    if (node && node.complete && node.naturalWidth === 0) {
+      setImageError(true);
+    }
+  };
+
+  const authorName = post.author?.name || post.author?.email || 'Anonymous Author';
 
   return (
     <>
@@ -101,6 +114,7 @@ export default function PostCard({ post, initialLiked, userAuthenticated, curren
             }}
           >
             <img
+              ref={handleCoverImgRef}
               src={post.cover_image_url}
               alt={post.title}
               onError={() => setImageError(true)}
@@ -137,6 +151,7 @@ export default function PostCard({ post, initialLiked, userAuthenticated, curren
 
         <h2 style={{ fontSize: '2rem', paddingRight: '100px' }}>{post.title}</h2>
 
+        {/* Author Details Row */}
         <div
           style={{
             display: 'flex',
@@ -146,23 +161,49 @@ export default function PostCard({ post, initialLiked, userAuthenticated, curren
             fontSize: '0.9rem',
           }}
         >
+          {/* Author Profile Image Icon */}
           <div
+            className="author-avatar-icon"
+            data-testid="author-avatar"
             style={{
-              width: '32px',
-              height: '32px',
+              width: '36px',
+              height: '36px',
               borderRadius: '50%',
-              background: 'var(--border-color)',
+              overflow: 'hidden',
+              background: 'linear-gradient(135deg, var(--primary), #a855f7)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 'bold',
-              color: 'var(--text-primary)',
+              color: '#ffffff',
+              flexShrink: 0,
+              border: '2px solid rgba(255, 255, 255, 0.12)',
             }}
           >
-            {authorName.charAt(0).toUpperCase()}
+            {post.author?.image && !authorImageError ? (
+              <img
+                ref={handleAuthorImgRef}
+                src={post.author.image}
+                alt={authorName}
+                onError={() => setAuthorImageError(true)}
+                className="author-avatar-img"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            ) : (
+              <span className="author-avatar-fallback" style={{ fontSize: '0.95rem' }}>
+                {authorName.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
           <div>
-            <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{authorName}</span>
+            <span className="author-name" style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
+              {authorName}
+            </span>
             <span style={{ margin: '0 8px' }}>•</span>
             <span>
               {new Date(post.createdAt).toLocaleDateString('en-US', {

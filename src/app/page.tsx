@@ -13,13 +13,13 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
   const userId = session?.user ? (session.user as any).id : null;
 
-  const [posts, categories] = await Promise.all([
+  const [posts, categories, userImages] = await Promise.all([
     prisma.post.findMany({
       where: { status: 'PUBLISHED' },
       orderBy: { createdAt: 'desc' },
       include: {
         author: {
-          select: { name: true, email: true }
+          select: { id: true, name: true, email: true }
         },
         category: {
           select: { id: true, name: true }
@@ -35,12 +35,19 @@ export default async function Home() {
     }),
     prisma.category.findMany({
       orderBy: { name: 'asc' }
-    })
+    }),
+    prisma.$queryRaw<any[]>`SELECT id, image FROM User`
   ]);
+
+  const userImageMap = new Map((userImages || []).map((u: any) => [u.id, u.image]));
 
   const serializedPosts = posts.map(post => ({
     ...post,
-    createdAt: post.createdAt.toISOString()
+    createdAt: post.createdAt.toISOString(),
+    author: {
+      ...post.author,
+      image: (post.author as any)?.image || userImageMap.get(post.authorId) || null
+    }
   }));
 
   return (
