@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-test.describe('Issue #14: User Profile Page (Name, Image, Posts, Comments)', () => {
+test.describe('Issue #14: User Profile Page (Name, Image, Posts, Comments, Camera/Gallery Upload)', () => {
   const user1Email = `profile_active_${Date.now()}@example.com`;
   const user2Email = `profile_empty_${Date.now()}@example.com`;
   const password = 'ProfilePassword123!';
@@ -162,6 +162,59 @@ test.describe('Issue #14: User Profile Page (Name, Image, Posts, Comments)', () 
     await expect(commentsSection).toBeVisible();
     await expect(page.locator(`text=${user1CommentText}`)).toBeVisible();
     await expect(page.locator(`text=Commented on: ${post1Title}`)).toBeVisible();
+  });
+
+  test('Positive 6: Clicking avatar icon opens Photo options with Camera and Gallery/Folder buttons', async ({ page }) => {
+    // 1. Log in as User 1
+    await page.goto('http://127.0.0.1:3000/login', { waitUntil: 'domcontentloaded' });
+    await page.fill('#email', user1Email);
+    await page.fill('#password', password);
+    await page.click('button:has-text("Sign In")');
+    await page.waitForURL('http://127.0.0.1:3000/', { timeout: 15000 });
+
+    // 2. Open Profile
+    await page.goto('http://127.0.0.1:3000/profile', { waitUntil: 'domcontentloaded' });
+
+    // 3. Click avatar or camera edit button
+    const changeAvatarBtn = page.locator('#change-avatar-btn');
+    await expect(changeAvatarBtn).toBeVisible();
+    await changeAvatarBtn.click();
+
+    // 4. Verify Photo picker modal appears with two prominent buttons
+    const photoModal = page.locator('#photo-picker-modal');
+    await expect(photoModal).toBeVisible();
+
+    const cameraBtn = page.locator('#btn-camera-capture');
+    await expect(cameraBtn).toBeVisible();
+    await expect(cameraBtn).toContainText('Take Photo with Camera');
+
+    const galleryBtn = page.locator('#btn-gallery-upload');
+    await expect(galleryBtn).toBeVisible();
+    await expect(galleryBtn).toContainText('Choose from Gallery / Folder');
+  });
+
+  test('Positive 7: Edit Profile form has no image URL text field and provides direct Camera/Gallery actions', async ({ page }) => {
+    // 1. Log in as User 1
+    await page.goto('http://127.0.0.1:3000/login', { waitUntil: 'domcontentloaded' });
+    await page.fill('#email', user1Email);
+    await page.fill('#password', password);
+    await page.click('button:has-text("Sign In")');
+    await page.waitForURL('http://127.0.0.1:3000/', { timeout: 15000 });
+
+    // 2. Open Profile and click Edit Profile
+    await page.goto('http://127.0.0.1:3000/profile', { waitUntil: 'domcontentloaded' });
+    await page.locator('#edit-profile-btn').click();
+
+    // 3. Verify Edit Form is open
+    const editForm = page.locator('#edit-profile-form');
+    await expect(editForm).toBeVisible();
+
+    // 4. Verify Image URL input field is completely removed
+    await expect(page.locator('#edit-image-input')).not.toBeVisible();
+
+    // 5. Verify Camera and Gallery buttons are present in form
+    await expect(page.locator('#form-camera-btn')).toBeVisible();
+    await expect(page.locator('#form-gallery-btn')).toBeVisible();
   });
 
   // --------------------------------------------------------------------------
