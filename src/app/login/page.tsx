@@ -59,8 +59,7 @@ function LoginForm() {
         setShowSuccessModal(true);
 
         setTimeout(() => {
-            router.push(targetPath);
-            router.refresh();
+            window.location.href = targetPath;
         }, 800);
     }
 

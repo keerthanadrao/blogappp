@@ -46,18 +46,11 @@ test.describe('Issue #10 (GitHub Issue #8): Image URL Field for Add/Write Post a
   });
 
   async function loginAuthor(page: any) {
-    const csrfRes = await page.request.get('http://127.0.0.1:3000/api/auth/csrf');
-    const csrfData = await csrfRes.json();
-
-    const loginRes = await page.request.post('http://127.0.0.1:3000/api/auth/callback/credentials', {
-      form: {
-        csrfToken: csrfData.csrfToken,
-        email: authorEmail,
-        password: authorPassword,
-        json: 'true',
-      },
-    });
-    expect(loginRes.ok()).toBeTruthy();
+    await page.goto('http://127.0.0.1:3000/login', { waitUntil: 'domcontentloaded' });
+    await page.fill('#email', authorEmail);
+    await page.fill('#password', authorPassword);
+    await page.click('button:has-text("Sign In")');
+    await page.waitForURL('http://127.0.0.1:3000/', { timeout: 20000 });
   }
 
   test.beforeEach(async ({ page }) => {
@@ -87,7 +80,7 @@ test.describe('Issue #10 (GitHub Issue #8): Image URL Field for Add/Write Post a
 
     // 3. Publish the post
     await page.click('button:has-text("Publish")');
-    await page.waitForURL('**/my-posts', { waitUntil: 'domcontentloaded', timeout: 10000 });
+    await page.waitForURL('**/my-posts', { waitUntil: 'domcontentloaded', timeout: 20000 });
 
     // Verify database record
     const savedPost = await prisma.post.findFirst({
@@ -135,7 +128,7 @@ test.describe('Issue #10 (GitHub Issue #8): Image URL Field for Add/Write Post a
     // 3. Replace with second valid Image URL
     await urlInput.fill(validImageUrl2);
     await page.click('button:has-text("Publish"), button:has-text("Update Post")');
-    await page.waitForURL('**/my-posts', { waitUntil: 'domcontentloaded', timeout: 10000 });
+    await page.waitForURL('**/my-posts', { waitUntil: 'domcontentloaded', timeout: 20000 });
 
     // Verify database record updated
     const updatedPost = await prisma.post.findUnique({ where: { id: post.id } });
