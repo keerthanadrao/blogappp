@@ -42,6 +42,9 @@ export default function AuthNav({ user }: AuthNavProps) {
         <Link id="nav-profile-link" href="/profile" className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: '0.9rem' }}>
           👤 Profile
         </Link>
+        <Link id="nav-bookmarks-link" href="/bookmarks" className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: '0.9rem' }}>
+          🔖 Bookmarks
+        </Link>
         <Link href="/posts/new" className="btn btn-primary" style={{ padding: '6px 14px', fontSize: '0.9rem' }}>
           + Write Post
         </Link>

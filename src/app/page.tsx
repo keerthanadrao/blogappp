@@ -13,7 +13,7 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
   const userId = session?.user ? (session.user as any).id : null;
 
-  const [posts, categories, userImages] = await Promise.all([
+  const [posts, categories, userImages, userBookmarks] = await Promise.all([
     prisma.post.findMany({
       where: { status: 'PUBLISHED' },
       orderBy: { createdAt: 'desc' },
@@ -36,14 +36,19 @@ export default async function Home() {
     prisma.category.findMany({
       orderBy: { name: 'asc' }
     }),
-    prisma.$queryRaw<any[]>`SELECT id, image FROM User`
+    prisma.$queryRaw<any[]>`SELECT id, image FROM User`,
+    userId
+      ? prisma.$queryRaw<any[]>`SELECT "postId" FROM "Bookmark" WHERE "userId" = ${userId}`
+      : Promise.resolve([])
   ]);
 
   const userImageMap = new Map((userImages || []).map((u: any) => [u.id, u.image]));
+  const bookmarkedPostIds = new Set((userBookmarks || []).map((b: any) => b.postId));
 
   const serializedPosts = posts.map(post => ({
     ...post,
     createdAt: post.createdAt.toISOString(),
+    isBookmarked: bookmarkedPostIds.has(post.id),
     author: {
       ...post.author,
       image: (post.author as any)?.image || userImageMap.get(post.authorId) || null

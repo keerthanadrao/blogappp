@@ -16,8 +16,10 @@ interface PostCardProps {
     _count: { likes: number; comments: number };
     cover_image_url?: string | null;
     tags?: string | null;
+    isBookmarked?: boolean;
   };
   initialLiked: boolean;
+  initialBookmarked?: boolean;
   userAuthenticated: boolean;
   currentUser?: {
     id: string;
@@ -26,18 +28,74 @@ interface PostCardProps {
     role: string;
   } | null;
   onTagClick?: (tag: string) => void;
+  onBookmarkToggle?: (postId: string, isBookmarked: boolean) => void;
 }
 
-export default function PostCard({ post, initialLiked, userAuthenticated, currentUser, onTagClick }: PostCardProps) {
+export default function PostCard({
+  post,
+  initialLiked,
+  initialBookmarked = false,
+  userAuthenticated,
+  currentUser,
+  onTagClick,
+  onBookmarkToggle,
+}: PostCardProps) {
   const router = useRouter();
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(post._count.likes);
+  const [bookmarked, setBookmarked] = useState(post.isBookmarked ?? initialBookmarked);
+  const [isBookmarking, setIsBookmarking] = useState(false);
   const [commentCount, setCommentCount] = useState(post._count.comments);
   const [showLikers, setShowLikers] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [authorImageError, setAuthorImageError] = useState(false);
+
+  const handleBookmark = async () => {
+    if (!userAuthenticated) {
+      router.push('/login');
+      return;
+    }
+
+    if (isBookmarking) return;
+
+    const nextBookmarkedState = !bookmarked;
+    setIsBookmarking(true);
+    // Optimistic update
+    setBookmarked(nextBookmarkedState);
+    if (onBookmarkToggle) {
+      onBookmarkToggle(post.id, nextBookmarkedState);
+    }
+
+    try {
+      const res = await fetch(`/api/posts/${post.id}/bookmark`, { method: 'POST' });
+      const data = await res.json();
+
+      if (res.ok) {
+        setBookmarked(data.bookmarked);
+        if (onBookmarkToggle) {
+          onBookmarkToggle(post.id, data.bookmarked);
+        }
+      } else {
+        // Revert on failure
+        setBookmarked(bookmarked);
+        if (onBookmarkToggle) {
+          onBookmarkToggle(post.id, bookmarked);
+        }
+        console.error('Failed to toggle bookmark:', data.error);
+      }
+    } catch (err) {
+      // Revert on failure
+      setBookmarked(bookmarked);
+      if (onBookmarkToggle) {
+        onBookmarkToggle(post.id, bookmarked);
+      }
+      console.error(err);
+    } finally {
+      setIsBookmarking(false);
+    }
+  };
 
   const handleLike = async () => {
     if (!userAuthenticated) {
@@ -341,6 +399,51 @@ export default function PostCard({ post, initialLiked, userAuthenticated, curren
               />
             </svg>
             <span className="comment-count">{commentCount}</span>
+          </button>
+
+          {/* Bookmark / Save Blog Button */}
+          <button
+            id={`bookmark-btn-${post.id}`}
+            data-testid="bookmark-btn"
+            onClick={handleBookmark}
+            disabled={isBookmarking}
+            className="bookmark-btn"
+            title={bookmarked ? 'Remove from Saved Blogs' : 'Save / Bookmark Blog'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: isBookmarking ? 'default' : 'pointer',
+              background: 'none',
+              border: 'none',
+              color: bookmarked ? '#818cf8' : 'var(--text-secondary)',
+              fontSize: '0.95rem',
+              padding: 0,
+              marginLeft: 'auto',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <svg
+              width="20"
+              height="20"
+              fill={bookmarked ? '#818cf8' : 'none'}
+              stroke={bookmarked ? '#818cf8' : 'currentColor'}
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              style={{
+                transition: 'transform 0.15s ease',
+                transform: bookmarked ? 'scale(1.1)' : 'scale(1)',
+              }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+              />
+            </svg>
+            <span style={{ fontSize: '0.88rem', fontWeight: bookmarked ? '600' : '400' }}>
+              {bookmarked ? 'Saved' : 'Save'}
+            </span>
           </button>
         </div>
 

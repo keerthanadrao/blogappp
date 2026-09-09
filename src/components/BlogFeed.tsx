@@ -9,6 +9,8 @@ interface PostData {
   body: string;
   createdAt: string;
   cover_image_url?: string | null;
+  tags?: string | null;
+  isBookmarked?: boolean;
   author?: { id?: string; name: string | null; email: string; image?: string | null } | null;
   category: { id?: string; name: string } | null;
   _count: { likes: number; comments: number };
@@ -546,6 +548,7 @@ export default function BlogFeed({
                   createdAt: post.createdAt,
                 }}
                 initialLiked={!!initialLiked}
+                initialBookmarked={!!post.isBookmarked}
                 userAuthenticated={userAuthenticated}
                 currentUser={currentUser}
                 onTagClick={handleTagClick}

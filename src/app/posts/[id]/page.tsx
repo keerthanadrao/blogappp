@@ -38,10 +38,16 @@ export default async function PostDetailPage(props: { params: Promise<{ id: stri
     notFound();
   }
 
-  const rawAuthor: any[] = await prisma.$queryRaw`SELECT image FROM User WHERE id = ${post.authorId}`;
-  const authorImage = rawAuthor?.[0]?.image || (post.author as any)?.image || null;
+  const [rawAuthor, rawBookmark] = await Promise.all([
+    prisma.$queryRaw<any[]>`SELECT image FROM User WHERE id = ${post.authorId}`,
+    userId
+      ? prisma.$queryRaw<any[]>`SELECT "postId" FROM "Bookmark" WHERE "postId" = ${post.id} AND "userId" = ${userId}`
+      : Promise.resolve([]),
+  ]);
 
+  const authorImage = rawAuthor?.[0]?.image || (post.author as any)?.image || null;
   const initialLiked = userId && post.likes && post.likes.length > 0;
+  const initialBookmarked = Boolean(rawBookmark && rawBookmark.length > 0);
 
   return (
     <main style={{ maxWidth: '800px', margin: '0 auto', padding: 'var(--space-6) var(--space-4)' }}>
@@ -55,12 +61,14 @@ export default async function PostDetailPage(props: { params: Promise<{ id: stri
         post={{
           ...post,
           createdAt: post.createdAt.toISOString(),
+          isBookmarked: initialBookmarked,
           author: {
             ...post.author,
             image: authorImage
           }
         }}
         initialLiked={!!initialLiked}
+        initialBookmarked={initialBookmarked}
         userAuthenticated={!!session}
         currentUser={
           session?.user

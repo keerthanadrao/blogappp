@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String     @id @default(cuid())
+  email         String     @unique
   password_hash String
-  role          String    @default("READER") // ADMIN or READER
+  role          String     @default("READER") // ADMIN or READER
   name          String?
-  image         String?   // profile image URL
-  bio           String?   // optional bio
+  image         String?    // profile image URL
+  bio           String?    // optional bio
   posts         Post[]
   comments      Comment[]
   likes         Like[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  bookmarks     Bookmark[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model Category {
@@ -31,20 +32,21 @@ model Category {
 }
 
 model Post {
-  id              String    @id @default(cuid())
+  id              String     @id @default(cuid())
   title           String
   body            String
   cover_image_url String?
-  tags            String?   // comma-separated tags e.g. "tech, webdev, react"
-  status          String    @default("DRAFT") // DRAFT or PUBLISHED
+  tags            String?    // comma-separated tags e.g. "tech, webdev, react"
+  status          String     @default("DRAFT") // DRAFT or PUBLISHED
   authorId        String
-  author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author          User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   categoryId      String
-  category        Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category        Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   comments        Comment[]
   likes           Like[]
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  bookmarks       Bookmark[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 }
 
 model Comment {
@@ -71,6 +73,16 @@ model Like {
   @@id([postId, userId])
 }
 
+model Bookmark {
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([postId, userId])
+}
+
 model PasswordResetOtp {
   id        String   @id @default(cuid())
   email     String
@@ -81,3 +93,4 @@ model PasswordResetOtp {
 
   @@index([email])
 }
+

@@ -921,6 +921,30 @@ export default function UserProfileView({ user: initialUser, isOwnProfile = fals
         >
           💬 Comments ({user.comments.length})
         </button>
+
+        {isOwnProfile && (
+          <Link
+            id="profile-bookmarks-link"
+            href="/bookmarks"
+            style={{
+              marginLeft: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.9rem',
+              color: '#818cf8',
+              textDecoration: 'none',
+              fontWeight: 600,
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(129, 140, 248, 0.1)',
+              border: '1px solid rgba(129, 140, 248, 0.25)',
+              alignSelf: 'center',
+            }}
+          >
+            🔖 View Saved Blogs →
+          </Link>
+        )}
       </div>
 
       {/* 📝 Tab 1: Published Posts Section */}
