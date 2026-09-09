@@ -13,6 +13,8 @@ model User {
   password_hash String
   role          String    @default("READER") // ADMIN or READER
   name          String?
+  image         String?   // profile image URL
+  bio           String?   // optional bio
   posts         Post[]
   comments      Comment[]
   likes         Like[]

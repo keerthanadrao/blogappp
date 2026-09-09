@@ -18,9 +18,13 @@ export default function AuthNav({ user }: AuthNavProps) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <span style={{ fontSize: '0.95rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+          <Link
+            id="nav-profile-user-link"
+            href="/profile"
+            style={{ fontSize: '0.95rem', color: 'var(--text-primary)', fontWeight: 500, textDecoration: 'none' }}
+          >
             {user.name || user.email}
-          </span>
+          </Link>
           {user.role === 'ADMIN' ? (
             <span 
               className="badge" 
@@ -35,6 +39,9 @@ export default function AuthNav({ user }: AuthNavProps) {
           )}
         </div>
 
+        <Link id="nav-profile-link" href="/profile" className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: '0.9rem' }}>
+          👤 Profile
+        </Link>
         <Link href="/posts/new" className="btn btn-primary" style={{ padding: '6px 14px', fontSize: '0.9rem' }}>
           + Write Post
         </Link>
