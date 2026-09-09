@@ -77,34 +77,44 @@ export async function PATCH(req: Request) {
     const body = await req.json();
     const { name, image, bio } = body;
 
-    // Optional URL validation for profile image
+    // Validate image format (http/https URL or data:image base64 URI)
     if (image && typeof image === 'string' && image.trim()) {
-      try {
-        new URL(image);
-      } catch (e) {
-        return NextResponse.json({ error: 'Please enter a valid image URL' }, { status: 400 });
+      const isDataUrl = image.startsWith('data:image/');
+      const isHttpUrl = image.startsWith('http://') || image.startsWith('https://');
+      if (!isDataUrl && !isHttpUrl) {
+        return NextResponse.json({ error: 'Invalid image format. Please choose an image file or capture from camera.' }, { status: 400 });
       }
     }
 
-    const updatedUser = await prisma.user.update({
+    if (name !== undefined) {
+      await prisma.$executeRaw`UPDATE User SET name = ${name?.trim() || null} WHERE id = ${userId}`;
+    }
+    if (image !== undefined) {
+      await prisma.$executeRaw`UPDATE User SET image = ${image || null} WHERE id = ${userId}`;
+    }
+    if (bio !== undefined) {
+      await prisma.$executeRaw`UPDATE User SET bio = ${bio?.trim() || null} WHERE id = ${userId}`;
+    }
+
+    const updatedUser = await prisma.user.findUnique({
       where: { id: userId },
-      data: {
-        ...(name !== undefined && { name: name?.trim() || null }),
-        ...(image !== undefined && { image: image?.trim() || null }),
-        ...(bio !== undefined && { bio: bio?.trim() || null })
-      },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        image: true,
-        bio: true,
-        createdAt: true
+        createdAt: true,
       }
     });
 
-    return NextResponse.json({ message: 'Profile updated successfully', user: updatedUser });
+    return NextResponse.json({
+      message: 'Profile updated successfully',
+      user: {
+        ...updatedUser,
+        image: image !== undefined ? image : null,
+        bio: bio !== undefined ? bio : null
+      }
+    });
   } catch (error: any) {
     console.error('Error updating user profile:', error);
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
