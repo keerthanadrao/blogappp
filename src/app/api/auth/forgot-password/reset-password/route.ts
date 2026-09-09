@@ -33,18 +33,11 @@ export async function POST(req: Request) {
     const trimmedEmail = email.trim().toLowerCase();
     const trimmedOtp = otp.trim();
 
-    // Verify OTP record
+    // Verify active OTP record
     const otpRecord = await prisma.passwordResetOtp.findFirst({
       where: {
-        OR: [
-          { email: email.trim() },
-          { email: trimmedEmail }
-        ],
-        otp: trimmedOtp,
+        OR: [{ email: email.trim() }, { email: trimmedEmail }],
         used: false,
-        expiresAt: {
-          gt: new Date(),
-        },
       },
       orderBy: {
         createdAt: "desc",
@@ -53,7 +46,73 @@ export async function POST(req: Request) {
 
     if (!otpRecord) {
       return NextResponse.json(
-        { error: "Invalid or expired OTP. Please restart password recovery." },
+        { error: "No active verification code found. Please request a new code." },
+        { status: 400 }
+      );
+    }
+
+    // Check expiration
+    if (new Date(otpRecord.expiresAt).getTime() <= Date.now()) {
+      await prisma.passwordResetOtp.update({
+        where: { id: otpRecord.id },
+        data: { used: true },
+      });
+      return NextResponse.json(
+        { error: "Verification code expired. Please request a new code.", expired: true },
+        { status: 400 }
+      );
+    }
+
+    // Check attempts limit
+    const currentAttempts = Number(otpRecord.attempts || 0);
+    if (currentAttempts >= 5) {
+      await prisma.passwordResetOtp.update({
+        where: { id: otpRecord.id },
+        data: { used: true },
+      });
+      return NextResponse.json(
+        {
+          error:
+            "Maximum attempts exceeded. This verification code has been invalidated. Please request a new code.",
+          codeInvalidated: true,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Compare OTP
+    if (otpRecord.otp !== trimmedOtp) {
+      const newAttempts = currentAttempts + 1;
+      const willInvalidate = newAttempts >= 5;
+
+      await prisma.passwordResetOtp.update({
+        where: { id: otpRecord.id },
+        data: {
+          attempts: newAttempts,
+          used: willInvalidate ? true : false,
+        },
+      });
+
+      if (willInvalidate) {
+        return NextResponse.json(
+          {
+            error:
+              "Maximum attempts exceeded. This verification code has been invalidated. Please request a new code.",
+            codeInvalidated: true,
+            attemptsRemaining: 0,
+          },
+          { status: 400 }
+        );
+      }
+
+      const attemptsLeft = 5 - newAttempts;
+      return NextResponse.json(
+        {
+          error: `Invalid verification code. ${attemptsLeft} attempt${
+            attemptsLeft === 1 ? "" : "s"
+          } remaining.`,
+          attemptsRemaining: attemptsLeft,
+        },
         { status: 400 }
       );
     }
@@ -64,9 +123,9 @@ export async function POST(req: Request) {
         OR: [
           { email: email.trim() },
           { email: trimmedEmail },
-          { email: email.trim().toUpperCase() }
-        ]
-      }
+          { email: email.trim().toUpperCase() },
+        ],
+      },
     });
 
     if (!user) {
@@ -94,7 +153,8 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         success: true,
-        message: "Password has been successfully reset. You can now login with your new password.",
+        message:
+          "Password has been successfully reset. You can now login with your new password.",
       },
       { status: 200 }
     );

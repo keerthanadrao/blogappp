@@ -163,6 +163,9 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
     });
 
     test('Negative Test 3: Incorrect OTP fails verification and prevents password reset', async ({ page }) => {
+        // Clean up previous OTPs to prevent cooldown block
+        await prisma.passwordResetOtp.deleteMany({ where: { email: userEmail } });
+
         await page.goto('http://127.0.0.1:3000/forgot-password', { waitUntil: 'domcontentloaded' });
 
         await page.fill('#recovery-email', userEmail);
@@ -175,7 +178,7 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
         await page.fill('#confirm-password', 'SomeNewPassword123!');
         await page.click('button:has-text("Reset Password")');
 
-        await expect(page.locator('text=Invalid or expired OTP')).toBeVisible();
+        await expect(page.locator('text=Invalid verification code')).toBeVisible();
         await expect(page.locator('text=Password Reset Complete!')).not.toBeVisible();
     });
 
@@ -196,6 +199,9 @@ test.describe('Issue #9: Forgot Password and OTP Verification Flow', () => {
     });
 
     test('Negative Test 5: Submitting without OTP triggers required validation', async ({ page }) => {
+        // Clean up previous OTPs to prevent cooldown block
+        await prisma.passwordResetOtp.deleteMany({ where: { email: userEmail } });
+
         await page.goto('http://127.0.0.1:3000/forgot-password', { waitUntil: 'domcontentloaded' });
 
         await page.fill('#recovery-email', userEmail);

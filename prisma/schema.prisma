@@ -89,6 +89,7 @@ model PasswordResetOtp {
   otp       String
   expiresAt DateTime
   used      Boolean  @default(false)
+  attempts  Int      @default(0)
   createdAt DateTime @default(now())
 
   @@index([email])
