@@ -40,36 +40,52 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Password must be at least 6 characters long.' }, { status: 400 });
     }
 
-    // Enforce SINGLE Admin rule: Only 1 administrator is permitted in the system
-    const existingAdmin = await prisma.user.findFirst({
-      where: { role: 'ADMIN' },
-    });
 
-    if (existingAdmin && existingAdmin.email !== trimmedEmail) {
-      return NextResponse.json(
-        { error: 'An Administrator account has already been registered. Only one admin is permitted in this system.' },
-        { status: 403 }
-      );
+
+    let existingUser = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        existingUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: trimmedEmail },
+              { email: email.trim() },
+            ],
+          },
+        });
+        break;
+      } catch (err) {
+        if (attempt === 2) throw err;
+        await new Promise((r) => setTimeout(r, 400));
+      }
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email: trimmedEmail } });
     if (existingUser) {
       return NextResponse.json({ error: 'User already exists' }, { status: 409 });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: {
-        email: trimmedEmail,
-        password_hash,
-        name: name?.trim() || 'Admin',
-        role: 'ADMIN'
+    let user = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        user = await prisma.user.create({
+          data: {
+            email: trimmedEmail,
+            password_hash,
+            name: name?.trim() || 'Admin',
+            role: 'ADMIN'
+          }
+        });
+        break;
+      } catch (err) {
+        if (attempt === 2) throw err;
+        await new Promise((r) => setTimeout(r, 400));
       }
-    });
+    }
 
-    return NextResponse.json({ success: true, user: { id: user.id, email: user.email, role: user.role } });
-  } catch (error) {
+    return NextResponse.json({ success: true, user: { id: user?.id, email: user?.email, role: user?.role } });
+  } catch (error: any) {
     console.error('Admin registration error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
   }
 }

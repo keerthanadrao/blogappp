@@ -9,9 +9,11 @@ import AuthSuccessModal from "@/components/AuthSuccessModal";
 function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const initialRole = searchParams.get('role') === 'admin' ? 'admin' : 'reader';
+    const roleParam = searchParams.get('role');
+    const [selectedRole, setSelectedRole] = useState<'reader' | 'admin' | null>(null);
+    const loginRole = selectedRole !== null ? selectedRole : (roleParam === 'admin' ? 'admin' : 'reader');
+    const setLoginRole = (newRole: 'reader' | 'admin') => setSelectedRole(newRole);
 
-    const [loginRole, setLoginRole] = useState<'reader' | 'admin'>(initialRole);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -21,21 +23,19 @@ function LoginForm() {
 
     const [showPassword, setShowPassword] = useState(false);
 
-    useEffect(() => {
-        if (searchParams.get('role') === 'admin') {
-            setLoginRole('admin');
-        }
-    }, [searchParams]);
-
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
         setError("");
         setLoading(true);
 
+        const form = event.currentTarget;
+        const formEmail = ((form?.elements?.namedItem("email") as HTMLInputElement)?.value || email || "").trim();
+        const formPassword = (form?.elements?.namedItem("password") as HTMLInputElement)?.value || password;
+
         const result = await signIn("credentials", {
-            email: email.trim(),
-            password,
+            email: formEmail,
+            password: formPassword,
             redirect: false,
         });
 
@@ -45,8 +45,11 @@ function LoginForm() {
             return;
         }
 
+        const session = await getSession();
+        const isAdmin = (session?.user as any)?.role === 'ADMIN' || loginRole === 'admin' || searchParams.get('role') === 'admin';
+        const targetPath = isAdmin ? "/admin" : "/";
+
         setLoading(false);
-        const targetPath = loginRole === 'admin' ? "/admin" : "/";
         setDestination(targetPath);
         setShowSuccessModal(true);
 
@@ -237,8 +240,8 @@ function LoginForm() {
                     </label>
                     <input
                         id="email"
+                        name="email"
                         type="email"
-                        value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         placeholder={loginRole === 'admin' ? "admin@example.com" : "you@example.com"}
@@ -265,8 +268,8 @@ function LoginForm() {
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <input
                             id="password"
+                            name="password"
                             type={showPassword ? "text" : "password"}
-                            value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             placeholder="Enter your password"

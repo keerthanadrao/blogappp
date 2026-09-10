@@ -9,10 +9,13 @@ import AuthSuccessModal from "@/components/AuthSuccessModal";
 function SignupForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const initialRole = searchParams.get('role') === 'admin' ? 'admin' : 'reader';
+    const roleParam = searchParams.get('role');
+    const [selectedRole, setSelectedRole] = useState(null);
+    const role = selectedRole !== null ? selectedRole : (roleParam === 'admin' ? 'admin' : 'reader');
+    const setRole = (newRole) => setSelectedRole(newRole);
+
     const errorParam = searchParams.get('error');
 
-    const [role, setRole] = useState(initialRole);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -24,12 +27,6 @@ function SignupForm() {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showSecretKey, setShowSecretKey] = useState(false);
-
-    useEffect(() => {
-        if (searchParams.get('role') === 'admin') {
-            setRole('admin');
-        }
-    }, [searchParams]);
 
     useEffect(() => {
         if (errorParam) {
@@ -62,10 +59,16 @@ function SignupForm() {
         setLoading(true);
 
         try {
+            const form = e.currentTarget;
+            const formName = (form?.elements?.namedItem("name")?.value || name || "").trim();
+            const formEmail = (form?.elements?.namedItem("email")?.value || email || "").trim();
+            const formPassword = form?.elements?.namedItem("password")?.value || password;
+            const formSecretKey = (form?.elements?.namedItem("secretKey")?.value || secretKey || "").trim();
+
             const endpoint = role === 'admin' ? "/api/auth/admin-register" : "/api/auth/register";
             const payload = role === 'admin' 
-                ? { name, email, password, secretKey } 
-                : { name, email, password };
+                ? { name: formName, email: formEmail, password: formPassword, secretKey: formSecretKey } 
+                : { name: formName, email: formEmail, password: formPassword };
 
             const response = await fetch(endpoint, {
                 method: "POST",
@@ -75,9 +78,10 @@ function SignupForm() {
                 body: JSON.stringify(payload),
             });
 
-            const data = await response.json();
+            const data = await response.json().catch(() => ({ error: "Failed to parse response" }));
 
             if (!response.ok) {
+                console.error("Signup failed:", response.status, data);
                 setError(data.error || "Registration failed");
                 setLoading(false);
                 return;
@@ -90,8 +94,9 @@ function SignupForm() {
             setTimeout(() => {
                 window.location.href = role === 'admin' ? "/login?role=admin" : "/login";
             }, 800);
-        } catch {
-            setError("Something went wrong. Please try again.");
+        } catch (err) {
+            console.error("Signup exception:", err);
+            setError(err?.message || "Something went wrong. Please try again.");
             setLoading(false);
         }
     }
@@ -131,7 +136,7 @@ function SignupForm() {
                 </h1>
                 <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(0.85rem, 2vw, 0.95rem)', marginTop: 'var(--space-1)' }}>
                     {role === 'admin' 
-                        ? 'Register an administrator account with security key (Single Admin System)' 
+                        ? 'Register an administrator account with security key' 
                         : 'Join the community with your favorite account or email'}
                 </p>
             </div>
@@ -351,8 +356,8 @@ function SignupForm() {
                     </label>
                     <input
                         id="name"
+                        name="name"
                         type="text"
-                        value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
                         placeholder="Enter your name"
@@ -365,8 +370,8 @@ function SignupForm() {
                     </label>
                     <input
                         id="email"
+                        name="email"
                         type="email"
-                        value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         placeholder="you@example.com"
@@ -380,8 +385,8 @@ function SignupForm() {
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <input
                             id="password"
+                            name="password"
                             type={showPassword ? "text" : "password"}
-                            value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             minLength={6}
@@ -430,8 +435,8 @@ function SignupForm() {
                         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                             <input
                                 id="secretKey"
+                                name="secretKey"
                                 type={showSecretKey ? "text" : "password"}
-                                value={secretKey}
                                 onChange={(e) => setSecretKey(e.target.value)}
                                 required
                                 placeholder="Enter admin registration secret"

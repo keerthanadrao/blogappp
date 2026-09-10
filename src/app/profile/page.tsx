@@ -1,12 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]/route';
-import { PrismaClient } from '@prisma/client';
-import Link from 'next/link';
-import AuthNav from '../../components/AuthNav';
-import UserProfileView from '../../components/UserProfileView';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 

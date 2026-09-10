@@ -1,12 +1,10 @@
 import React from 'react';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../api/auth/[...nextauth]/route';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import PostForm from '../../../../components/PostForm';
-
-const prisma = new PrismaClient();
 
 export default async function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);

@@ -126,5 +126,39 @@ test.describe('Production Fixes & Mobile Readiness Verification Suite', () => {
     // Verify first card contains title, author, and category
     const firstCard = blogCards.first();
     await expect(firstCard).toBeVisible();
+
+    // Verify all rendered cards have cover images
+    const images = page.locator('article.card img');
+    const imageCount = await images.count();
+    expect(imageCount).toBeGreaterThanOrEqual(1);
+  });
+
+  test('7. New Admin can register with secret key, login, and access Admin Dashboard', async ({ page }) => {
+    const unique = `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const adminEmail = `newadmin_${unique}@example.com`;
+    const adminPassword = 'AdminPassword123!';
+
+    // 1. Go to Admin Registration
+    await page.goto('http://localhost:3000/signup?role=admin', { waitUntil: 'domcontentloaded' });
+    await page.fill('#name', 'New Administrator');
+    await page.fill('#email', adminEmail);
+    await page.fill('#password', adminPassword);
+    await page.fill('#secretKey', 'admin1234');
+    await page.click('button[type="submit"]');
+
+    // 2. Expect success modal and redirect to admin login
+    await expect(page.locator('#auth-success-modal')).toBeVisible({ timeout: 10000 });
+    await page.waitForURL('**/login?role=admin', { timeout: 15000 });
+
+    // 3. Login as the newly created Admin
+    await page.fill('#email', adminEmail);
+    await page.fill('#password', adminPassword);
+    await page.click('button[type="submit"]');
+
+    // 4. Expect success modal and redirect to /admin
+    await expect(page.locator('#auth-success-modal')).toBeVisible({ timeout: 10000 });
+    await page.waitForURL('http://localhost:3000/admin', { timeout: 15000 });
+    expect(page.url()).toContain('/admin');
   });
 });
+

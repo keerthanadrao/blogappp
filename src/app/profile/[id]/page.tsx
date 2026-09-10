@@ -1,11 +1,9 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../api/auth/[...nextauth]/route';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import AuthNav from '../../../components/AuthNav';
 import UserProfileView from '../../../components/UserProfileView';
-
-const prisma = new PrismaClient();
 
 export default async function PublicProfilePage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;

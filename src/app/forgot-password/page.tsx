@@ -506,8 +506,8 @@ function ForgotPasswordForm() {
                 {isCodeExpired
                   ? "Verification code expired. Please request a new code."
                   : codeInvalidated
-                  ? "Code invalidated. Please request a new code."
-                  : `Verification code expires in: ${formatTimer(expiresInSeconds)}`}
+                    ? "Code invalidated. Please request a new code."
+                    : `Verification code expires in: ${formatTimer(expiresInSeconds)}`}
               </span>
             </div>
 
@@ -540,10 +540,10 @@ function ForgotPasswordForm() {
               {isResending
                 ? "Sending..."
                 : cooldownSeconds > 0
-                ? `Resend code in ${cooldownSeconds}s`
-                : hourlyLimitReached
-                ? "Limit Reached"
-                : "Resend Code"}
+                  ? `Resend code in ${cooldownSeconds}s`
+                  : hourlyLimitReached
+                    ? "Limit Reached"
+                    : "Resend Code"}
             </button>
           </div>
 
@@ -817,10 +817,10 @@ function ForgotPasswordForm() {
             {loading
               ? "Updating Password..."
               : isCodeExpired
-              ? "Verification Code Expired"
-              : codeInvalidated
-              ? "Code Invalidate - Resend New Code"
-              : "Reset Password"}
+                ? "Verification Code Expired"
+                : codeInvalidated
+                  ? "Code Invalidate - Resend New Code"
+                  : "Reset Password"}
           </button>
         </form>
       )}
