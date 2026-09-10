@@ -1,7 +1,10 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import AuthNav from '@/components/AuthNav';
+import UserProfileView from '@/components/UserProfileView';
 
 export const dynamic = 'force-dynamic';
 

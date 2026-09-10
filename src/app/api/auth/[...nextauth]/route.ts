@@ -1,8 +1,6 @@
 import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import GithubProvider from "next-auth/providers/github";
-import LinkedInProvider from "next-auth/providers/linkedin";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -11,16 +9,6 @@ export const authOptions: AuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "mock-google-client-id",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "mock-google-client-secret",
-      allowDangerousEmailAccountLinking: true,
-    }),
-    LinkedInProvider({
-      clientId: process.env.LINKEDIN_CLIENT_ID || "mock-linkedin-client-id",
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET || "mock-linkedin-client-secret",
-      allowDangerousEmailAccountLinking: true,
-    }),
-    GithubProvider({
-      clientId: process.env.GITHUB_ID || process.env.GITHUB_CLIENT_ID || "mock-github-client-id",
-      clientSecret: process.env.GITHUB_SECRET || process.env.GITHUB_CLIENT_SECRET || "mock-github-client-secret",
       allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
