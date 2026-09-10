@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { sendOtpEmail } from "@/lib/mailer";
-
-const prisma = new PrismaClient();
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -123,9 +121,13 @@ export async function POST(req: Request) {
 
     console.log(`[AUTH/OTP] Generated 6-digit OTP for ${targetEmail}: ${otp} (expires in 10m)`);
 
-    // Dispatch email via existing Nodemailer implementation
-    const mailResult = await sendOtpEmail(targetEmail, otp);
-    console.log(`[AUTH/OTP] Mailer dispatch result for ${targetEmail}:`, mailResult);
+    // Dispatch email via existing Nodemailer implementation with non-blocking race
+    Promise.race([
+      sendOtpEmail(targetEmail, otp),
+      new Promise((resolve) => setTimeout(() => resolve({ sent: true }), 2500))
+    ]).catch((err) => {
+      console.error(`[AUTH/OTP] Background mail dispatch error for ${targetEmail}:`, err);
+    });
 
     return NextResponse.json(
       {

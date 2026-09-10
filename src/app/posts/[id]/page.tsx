@@ -18,7 +18,7 @@ export default async function PostDetailPage(props: { params: Promise<{ id: stri
     where: { id },
     include: {
       author: {
-        select: { name: true, email: true },
+        select: { id: true, name: true, email: true, image: true },
       },
       category: {
         select: { name: true },
@@ -38,16 +38,20 @@ export default async function PostDetailPage(props: { params: Promise<{ id: stri
     notFound();
   }
 
-  const [rawAuthor, rawBookmark] = await Promise.all([
-    prisma.$queryRaw<any[]>`SELECT image FROM User WHERE id = ${post.authorId}`,
-    userId
-      ? prisma.$queryRaw<any[]>`SELECT "postId" FROM "Bookmark" WHERE "postId" = ${post.id} AND "userId" = ${userId}`
-      : Promise.resolve([]),
-  ]);
+  const existingBookmark = userId
+    ? await prisma.bookmark.findUnique({
+        where: {
+          postId_userId: {
+            postId: post.id,
+            userId,
+          },
+        },
+      })
+    : null;
 
-  const authorImage = rawAuthor?.[0]?.image || (post.author as any)?.image || null;
+  const authorImage = post.author?.image || null;
   const initialLiked = userId && post.likes && post.likes.length > 0;
-  const initialBookmarked = Boolean(rawBookmark && rawBookmark.length > 0);
+  const initialBookmarked = Boolean(existingBookmark);
 
   return (
     <main className="main-container">

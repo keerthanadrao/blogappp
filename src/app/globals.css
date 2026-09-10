@@ -431,9 +431,9 @@ input:focus, textarea:focus, select:focus {
   }
 
   .nav-links-wrap .btn {
-    padding: 6px 12px;
+    padding: 7px 13px;
     font-size: 0.85rem;
-    min-height: 36px;
+    min-height: 40px;
   }
 
   /* Admin mobile responsiveness */
@@ -458,6 +458,7 @@ input:focus, textarea:focus, select:focus {
     flex: 1 1 calc(50% - 8px);
     font-size: 0.85rem;
     padding: 8px 10px;
+    min-height: 42px;
   }
 
   .admin-main {
@@ -466,6 +467,11 @@ input:focus, textarea:focus, select:focus {
 
   .card {
     padding: var(--space-3);
+  }
+
+  .horizontal-scroll-pills {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
   }
 }
 
@@ -479,8 +485,9 @@ input:focus, textarea:focus, select:focus {
   }
 
   .nav-links-wrap .btn {
-    padding: 5px 9px;
-    font-size: 0.8rem;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    min-height: 38px;
   }
 
   .admin-sidebar nav .btn {
@@ -490,5 +497,9 @@ input:focus, textarea:focus, select:focus {
   .comment-reply-indent {
     margin-left: 10px !important;
     padding-left: 6px !important;
+  }
+
+  input, textarea, select {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
   }
 }

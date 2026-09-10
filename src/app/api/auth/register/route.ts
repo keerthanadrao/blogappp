@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
@@ -11,14 +9,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing email or password' }, { status: 400 });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const trimmedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    if (!trimmedEmail) {
+      return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: trimmedEmail },
+          { email: typeof email === 'string' ? email.trim() : '' },
+        ]
+      }
+    });
+
     if (existingUser) {
       return NextResponse.json({ error: 'User already exists' }, { status: 409 });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { email, password_hash, name, role: 'READER' }
+      data: {
+        email: trimmedEmail,
+        password_hash,
+        name: name ? String(name).trim() : null,
+        role: 'READER'
+      }
     });
 
     return NextResponse.json({ success: true, user: { id: user.id, email: user.email, role: user.role } });

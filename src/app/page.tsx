@@ -1,11 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import BlogFeed from '../components/BlogFeed';
 import AuthNav from '../components/AuthNav';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
 
 // Prevent static rendering since feed should be dynamic
 export const dynamic = 'force-dynamic'; 
@@ -14,13 +12,19 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
   const userId = session?.user ? (session.user as any).id : null;
 
-  const [posts, categories, userImages, userBookmarks] = await Promise.all([
-    prisma.post.findMany({
-      where: { status: 'PUBLISHED' },
+  let posts: any[] = [];
+  let categories: any[] = [];
+  let userBookmarks: any[] = [];
+
+  try {
+    posts = await prisma.post.findMany({
+      where: {
+        status: { in: ['PUBLISHED', 'published'] },
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         author: {
-          select: { id: true, name: true, email: true }
+          select: { id: true, name: true, email: true, image: true }
         },
         category: {
           select: { id: true, name: true }
@@ -28,22 +32,34 @@ export default async function Home() {
         _count: {
           select: { likes: true, comments: true }
         },
-        // Check if current user liked the post
         likes: userId ? {
           where: { userId }
         } : false
       }
-    }),
-    prisma.category.findMany({
-      orderBy: { name: 'asc' }
-    }),
-    prisma.$queryRaw<any[]>`SELECT id, image FROM User`,
-    userId
-      ? prisma.$queryRaw<any[]>`SELECT "postId" FROM "Bookmark" WHERE "userId" = ${userId}`
-      : Promise.resolve([])
-  ]);
+    });
+  } catch (e) {
+    console.error('Error fetching posts:', e);
+  }
 
-  const userImageMap = new Map((userImages || []).map((u: any) => [u.id, u.image]));
+  try {
+    categories = await prisma.category.findMany({
+      orderBy: { name: 'asc' }
+    });
+  } catch (e) {
+    console.error('Error fetching categories:', e);
+  }
+
+  if (userId) {
+    try {
+      userBookmarks = await prisma.bookmark.findMany({
+        where: { userId },
+        select: { postId: true }
+      });
+    } catch (e) {
+      console.error('Error fetching bookmarks:', e);
+    }
+  }
+
   const bookmarkedPostIds = new Set((userBookmarks || []).map((b: any) => b.postId));
 
   const serializedPosts = posts.map(post => ({
@@ -52,7 +68,7 @@ export default async function Home() {
     isBookmarked: bookmarkedPostIds.has(post.id),
     author: {
       ...post.author,
-      image: (post.author as any)?.image || userImageMap.get(post.authorId) || null
+      image: post.author?.image || null
     }
   }));
 

@@ -121,13 +121,19 @@ function ForgotPasswordForm() {
     setError("");
     setSuccessMessage("");
 
-    if (!email.trim()) {
+    const form = e.currentTarget as HTMLFormElement;
+    const formEmail = (form?.elements?.namedItem("recovery-email") as HTMLInputElement)?.value;
+    const targetEmail = (formEmail || email || "").trim();
+
+    if (!targetEmail) {
       setError("Email is required.");
       return;
     }
 
+    setEmail(targetEmail);
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
+    if (!emailRegex.test(targetEmail)) {
       setError("Please enter a valid email address format.");
       return;
     }
@@ -138,7 +144,7 @@ function ForgotPasswordForm() {
       const res = await fetch("/api/auth/forgot-password/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), role }),
+        body: JSON.stringify({ email: targetEmail, role }),
       });
 
       const data = await res.json();
@@ -429,6 +435,7 @@ function ForgotPasswordForm() {
             </label>
             <input
               id="recovery-email"
+              name="recovery-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -575,18 +582,22 @@ function ForgotPasswordForm() {
             <input
               id="otp-input"
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="one-time-code"
               maxLength={6}
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
               disabled={isCodeExpired || codeInvalidated}
               required
               placeholder="123456"
               style={{
                 textAlign: "center",
-                letterSpacing: "4px",
-                fontSize: "1.25rem",
+                letterSpacing: "6px",
+                fontSize: "1.35rem",
                 fontWeight: "bold",
                 opacity: isCodeExpired || codeInvalidated ? 0.6 : 1,
+                minHeight: "46px",
               }}
             />
             {attemptsRemaining < 5 && attemptsRemaining > 0 && !isCodeExpired && (

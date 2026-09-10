@@ -3,24 +3,25 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import LinkedInProvider from "next-auth/providers/linkedin";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "mock-google-client-id",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "mock-google-client-secret",
+      allowDangerousEmailAccountLinking: true,
     }),
     LinkedInProvider({
       clientId: process.env.LINKEDIN_CLIENT_ID || "mock-linkedin-client-id",
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET || "mock-linkedin-client-secret",
+      allowDangerousEmailAccountLinking: true,
     }),
     GithubProvider({
       clientId: process.env.GITHUB_ID || process.env.GITHUB_CLIENT_ID || "mock-github-client-id",
       clientSecret: process.env.GITHUB_SECRET || process.env.GITHUB_CLIENT_SECRET || "mock-github-client-secret",
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -34,10 +35,14 @@ export const authOptions: AuthOptions = {
         }
 
         const email = credentials.email.trim().toLowerCase();
+        const rawEmail = credentials.email.trim();
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findFirst({
           where: {
-            email,
+            OR: [
+              { email },
+              { email: rawEmail },
+            ],
           },
         });
 
@@ -64,6 +69,11 @@ export const authOptions: AuthOptions = {
     }),
   ],
 
+  pages: {
+    signIn: '/login',
+    error: '/signup',
+  },
+
   callbacks: {
     async signIn({ user, account, profile }: any) {
       if (account?.provider && account.provider !== "credentials") {
@@ -72,8 +82,14 @@ export const authOptions: AuthOptions = {
         }
 
         const email = user.email.trim().toLowerCase();
-        let dbUser = await prisma.user.findUnique({
-          where: { email },
+        const rawEmail = user.email.trim();
+        let dbUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email },
+              { email: rawEmail },
+            ],
+          },
         });
 
         if (!dbUser) {
@@ -83,7 +99,13 @@ export const authOptions: AuthOptions = {
               name: user.name || profile?.name || email.split("@")[0],
               password_hash: "", // OAuth registered user
               role: "READER",
+              image: user.image || profile?.picture || profile?.avatar_url || null,
             },
+          });
+        } else if (user.image && !dbUser.image) {
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { image: user.image },
           });
         }
 
@@ -100,8 +122,14 @@ export const authOptions: AuthOptions = {
         token.id = user.id;
         token.role = user.role;
       } else if (token.email && (!token.id || !token.role)) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email.toLowerCase() },
+        const email = token.email.toLowerCase();
+        const dbUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email },
+              { email: token.email },
+            ],
+          },
         });
         if (dbUser) {
           token.id = dbUser.id;

@@ -18,28 +18,15 @@ export default async function BookmarksPage() {
 
   const userId = (session.user as any).id;
 
-  // Fetch user's bookmarked posts from SQLite
-  const bookmarkedRows = await prisma.$queryRaw<any[]>`
-    SELECT "postId", "createdAt" as "bookmarkedAt"
-    FROM "Bookmark"
-    WHERE "userId" = ${userId}
-    ORDER BY "createdAt" DESC
-  `;
-
-  const postIds = (bookmarkedRows || []).map((b) => b.postId);
-
-  let serializedBookmarks: any[] = [];
-
-  if (postIds.length > 0) {
-    const [posts, userImages] = await Promise.all([
-      prisma.post.findMany({
-        where: {
-          id: { in: postIds },
-          status: 'PUBLISHED',
-        },
+  // Fetch user's bookmarked posts using native Prisma relations
+  const bookmarks = await prisma.bookmark.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      post: {
         include: {
           author: {
-            select: { id: true, name: true, email: true },
+            select: { id: true, name: true, email: true, image: true },
           },
           category: {
             select: { id: true, name: true },
@@ -47,36 +34,26 @@ export default async function BookmarksPage() {
           _count: {
             select: { likes: true, comments: true },
           },
-          likes: userId
-            ? {
-                where: { userId },
-              }
-            : false,
-        },
-      }),
-      prisma.$queryRaw<any[]>`SELECT id, image FROM User`,
-    ]);
-
-    const userImageMap = new Map((userImages || []).map((u: any) => [u.id, u.image]));
-    const postMap = new Map(posts.map((p) => [p.id, p]));
-
-    serializedBookmarks = bookmarkedRows
-      .map((b) => {
-        const post = postMap.get(b.postId);
-        if (!post) return null;
-        return {
-          ...post,
-          createdAt: post.createdAt.toISOString(),
-          isBookmarked: true,
-          bookmarkedAt: b.bookmarkedAt,
-          author: {
-            ...post.author,
-            image: (post.author as any)?.image || userImageMap.get(post.authorId) || null,
+          likes: {
+            where: { userId },
           },
-        };
-      })
-      .filter(Boolean);
-  }
+        },
+      },
+    },
+  });
+
+  const serializedBookmarks = bookmarks
+    .filter((b) => b.post && b.post.status === 'PUBLISHED')
+    .map((b) => ({
+      ...b.post,
+      createdAt: b.post.createdAt.toISOString(),
+      isBookmarked: true,
+      bookmarkedAt: b.createdAt.toISOString(),
+      author: {
+        ...b.post.author,
+        image: b.post.author?.image || null,
+      },
+    }));
 
   return (
     <main className="main-container">

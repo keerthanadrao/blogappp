@@ -43,24 +43,37 @@ export async function POST(
     }
 
     // Check if bookmark already exists
-    const existingBookmark = await prisma.$queryRaw<any[]>`
-      SELECT "postId", "userId" FROM "Bookmark" WHERE "postId" = ${postId} AND "userId" = ${userId}
-    `;
+    const existingBookmark = await prisma.bookmark.findUnique({
+      where: {
+        postId_userId: {
+          postId,
+          userId,
+        },
+      },
+    });
 
-    if (existingBookmark && existingBookmark.length > 0) {
+    if (existingBookmark) {
       // Remove bookmark (unbookmark)
-      await prisma.$executeRaw`
-        DELETE FROM "Bookmark" WHERE "postId" = ${postId} AND "userId" = ${userId}
-      `;
+      await prisma.bookmark.delete({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
+      });
       return NextResponse.json({
         bookmarked: false,
         message: 'Blog removed from bookmarks.',
       });
     } else {
       // Create bookmark
-      await prisma.$executeRaw`
-        INSERT INTO "Bookmark" ("postId", "userId", "createdAt") VALUES (${postId}, ${userId}, CURRENT_TIMESTAMP)
-      `;
+      await prisma.bookmark.create({
+        data: {
+          postId,
+          userId,
+        },
+      });
       return NextResponse.json({
         bookmarked: true,
         message: 'Blog saved to bookmarks successfully.',
@@ -92,12 +105,17 @@ export async function GET(
       return NextResponse.json({ bookmarked: false });
     }
 
-    const bookmark = await prisma.$queryRaw<any[]>`
-      SELECT "postId" FROM "Bookmark" WHERE "postId" = ${postId} AND "userId" = ${userId}
-    `;
+    const bookmark = await prisma.bookmark.findUnique({
+      where: {
+        postId_userId: {
+          postId,
+          userId,
+        },
+      },
+    });
 
     return NextResponse.json({
-      bookmarked: Boolean(bookmark && bookmark.length > 0),
+      bookmarked: Boolean(bookmark),
     });
   } catch (error) {
     console.error('FETCH BOOKMARK STATUS ERROR:', error);

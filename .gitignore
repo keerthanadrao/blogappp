@@ -26,6 +26,8 @@
 *.pptx
 cloudflared.exe
 generate_ppt.py
+prisma/*.db
+prisma/*.db-journal
 
 # debug
 npm-debug.log*

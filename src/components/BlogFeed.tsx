@@ -46,6 +46,9 @@ export default function BlogFeed({
   const [activeSearch, setActiveSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedTag, setSelectedTag] = useState<string>('ALL');
+  const [showTagsDrawer, setShowTagsDrawer] = useState<boolean>(false);
+
+  const defaultPopularTags = ['technology', 'design', 'development', 'architecture', 'nextjs', 'react', 'supabase'];
 
   // Extract all unique tags across all published posts
   const availableTags = useMemo(() => {
@@ -63,6 +66,11 @@ export default function BlogFeed({
       );
       hashtags.forEach((t) => tagSet.add(t));
     });
+
+    if (tagSet.size === 0) {
+      defaultPopularTags.forEach((t) => tagSet.add(t));
+    }
+
     return Array.from(tagSet).sort();
   }, [initialPosts]);
 
@@ -334,6 +342,7 @@ export default function BlogFeed({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <div className="horizontal-scroll-pills" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             <button
+              id="category-pill-all"
               type="button"
               className="category-pill"
               data-category="ALL"
@@ -355,6 +364,7 @@ export default function BlogFeed({
 
             {categories.map((cat) => (
               <button
+                id={`category-pill-${cat.name.toLowerCase()}`}
                 key={cat.id}
                 type="button"
                 className="category-pill"
@@ -411,10 +421,49 @@ export default function BlogFeed({
           </select>
         </div>
 
-        {/* Right: Clean Tag Selector Dropdown (No redundant duplicate chips!) */}
-        {availableTags.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.86rem', color: '#94a3b8', fontWeight: 600 }}>Tag:</span>
+        {/* Right: Tags Button & Tag Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Dedicated Tags Button (Visible on Desktop & Mobile) */}
+          <button
+            id="tags-btn"
+            type="button"
+            onClick={() => setShowTagsDrawer((prev) => !prev)}
+            aria-expanded={showTagsDrawer}
+            title="Browse all topic tags"
+            style={{
+              padding: '7px 14px',
+              borderRadius: 'var(--radius-pill)',
+              border: showTagsDrawer || selectedTag !== 'ALL' ? '1px solid #c084fc' : '1px solid var(--border-color)',
+              backgroundColor: showTagsDrawer || selectedTag !== 'ALL' ? 'rgba(168, 85, 247, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+              color: showTagsDrawer || selectedTag !== 'ALL' ? '#c084fc' : 'var(--text-secondary)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.86rem',
+              transition: 'all var(--transition-fast)',
+              minHeight: '38px',
+            }}
+          >
+            <span>🏷️ Tags</span>
+            {availableTags.length > 0 && (
+              <span
+                style={{
+                  backgroundColor: 'rgba(168, 85, 247, 0.35)',
+                  color: '#ffffff',
+                  fontSize: '0.72rem',
+                  padding: '1px 6px',
+                  borderRadius: 'var(--radius-pill)',
+                  fontWeight: 700,
+                }}
+              >
+                {availableTags.length}
+              </span>
+            )}
+          </button>
+
+          {availableTags.length > 0 && (
             <select
               id="tag-filter"
               value={selectedTag}
@@ -447,6 +496,55 @@ export default function BlogFeed({
                 </option>
               ))}
             </select>
+          )}
+        </div>
+
+        {/* 🏷️ Expandable Tags Drawer */}
+        {showTagsDrawer && availableTags.length > 0 && (
+          <div
+            id="tags-drawer"
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexWrap: 'wrap',
+              padding: '12px 16px',
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid rgba(168, 85, 247, 0.3)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            <span style={{ fontSize: '0.82rem', color: '#c084fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Explore Tags:
+            </span>
+            {availableTags.map((tag) => {
+              const isSelected = selectedTag.toLowerCase() === tag;
+              return (
+                <button
+                  id={`tag-chip-${tag}`}
+                  key={tag}
+                  type="button"
+                  className="post-tag-chip"
+                  data-tag={tag}
+                  onClick={() => handleTagClick(tag)}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 'var(--radius-pill)',
+                    border: isSelected ? '1px solid #c084fc' : '1px solid rgba(255, 255, 255, 0.14)',
+                    backgroundColor: isSelected ? 'rgba(168, 85, 247, 0.35)' : 'rgba(255, 255, 255, 0.05)',
+                    color: isSelected ? '#ffffff' : '#c084fc',
+                    fontSize: '0.82rem',
+                    fontWeight: isSelected ? 700 : 500,
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  #{tag}
+                </button>
+              );
+            })}
           </div>
         )}
 

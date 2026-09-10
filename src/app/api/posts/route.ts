@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route'; // verify this is the correct relative path! (src/app/api/posts -> src/app/api/auth/[...nextauth])
-
-const prisma = new PrismaClient();
 
 // POST /api/posts - Create a new post
 export async function POST(req: Request) {

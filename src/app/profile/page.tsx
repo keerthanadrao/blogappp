@@ -26,6 +26,8 @@ export default async function ProfilePage() {
       name: true,
       email: true,
       role: true,
+      image: true,
+      bio: true,
       createdAt: true,
       posts: {
         where: { status: 'PUBLISHED' },
@@ -48,17 +50,12 @@ export default async function ProfilePage() {
     redirect('/login');
   }
 
-  // Safely fetch additional dynamic columns from SQLite
-  const rawData: any[] = await prisma.$queryRaw`SELECT image, bio FROM User WHERE id = ${userId}`;
-  const image = rawData?.[0]?.image || null;
-  const bio = rawData?.[0]?.bio || null;
-
   const totalLikesReceived = user.posts.reduce((sum, p) => sum + p._count.likes, 0);
 
   const serializedUser = {
     ...user,
-    image,
-    bio,
+    image: user.image || null,
+    bio: user.bio || null,
     createdAt: user.createdAt.toISOString(),
     posts: user.posts.map(p => ({
       ...p,
