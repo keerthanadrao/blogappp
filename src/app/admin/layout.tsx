@@ -74,6 +74,14 @@ export default async function AdminLayout({
             >
               🌐 Main Feed
             </Link>
+
+            <Link
+              href="/news"
+              className="btn btn-secondary"
+              style={{ justifyContent: 'flex-start', padding: '8px 12px', fontSize: '0.9rem' }}
+            >
+              📰 News
+            </Link>
           </nav>
         </div>
 

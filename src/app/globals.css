@@ -503,3 +503,144 @@ input:focus, textarea:focus, select:focus {
     font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
   }
 }
+
+/* ==========================================================================
+   Rich-Text Editor (Tiptap) Styles
+   ========================================================================== */
+
+/* Editor Content Area */
+.rte-content {
+  outline: none;
+  min-height: inherit;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* Placeholder */
+.rte-content p.is-editor-empty:first-child::before,
+.rte-is-empty .rte-content::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Tiptap ProseMirror placeholder (class set by @tiptap/extension-placeholder) */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Editor content typography */
+.rte-content p,
+.ProseMirror p {
+  margin-bottom: 0.75em;
+}
+
+.rte-content p:last-child,
+.ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+.rte-content ul,
+.ProseMirror ul {
+  list-style: disc;
+  margin-left: 1.5em;
+  margin-bottom: 0.75em;
+}
+
+.rte-content ol,
+.ProseMirror ol {
+  list-style: decimal;
+  margin-left: 1.5em;
+  margin-bottom: 0.75em;
+}
+
+.rte-content li,
+.ProseMirror li {
+  margin-bottom: 0.25em;
+  line-height: 1.6;
+}
+
+.rte-content strong,
+.ProseMirror strong {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rte-content em,
+.ProseMirror em {
+  font-style: italic;
+}
+
+/* ==========================================================================
+   News/Prose Content Rendering (safe HTML output display)
+   ========================================================================== */
+
+.news-prose {
+  color: var(--text-primary);
+  font-size: 0.97rem;
+  line-height: 1.75;
+  font-family: var(--font-family);
+}
+
+.news-prose p {
+  margin-bottom: 0.85em;
+}
+
+.news-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.news-prose strong, .news-prose b {
+  font-weight: 700;
+}
+
+.news-prose em, .news-prose i {
+  font-style: italic;
+}
+
+.news-prose ul {
+  list-style: disc;
+  margin-left: 1.5em;
+  margin-bottom: 0.85em;
+}
+
+.news-prose ol {
+  list-style: decimal;
+  margin-left: 1.5em;
+  margin-bottom: 0.85em;
+}
+
+.news-prose li {
+  margin-bottom: 0.3em;
+  line-height: 1.65;
+}
+
+.news-prose h1, .news-prose h2, .news-prose h3 {
+  font-weight: 700;
+  margin-bottom: 0.5em;
+  margin-top: 1em;
+  line-height: 1.3;
+}
+
+.news-prose blockquote {
+  border-left: 3px solid var(--primary);
+  padding-left: 1em;
+  color: var(--text-secondary);
+  margin: 0.75em 0;
+}
+
+.news-prose pre, .news-prose code {
+  background: rgba(0,0,0,0.3);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-size: 0.88em;
+}
+
