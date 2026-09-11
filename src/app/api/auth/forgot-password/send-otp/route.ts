@@ -121,13 +121,15 @@ export async function POST(req: Request) {
 
     console.log(`[AUTH/OTP] Generated 6-digit OTP for ${targetEmail}: ${otp} (expires in 10m)`);
 
-    // Dispatch email via existing Nodemailer implementation with non-blocking race
-    Promise.race([
-      sendOtpEmail(targetEmail, otp),
-      new Promise((resolve) => setTimeout(() => resolve({ sent: true }), 2500))
-    ]).catch((err) => {
-      console.error(`[AUTH/OTP] Background mail dispatch error for ${targetEmail}:`, err);
-    });
+    // Dispatch email via existing Nodemailer implementation
+    try {
+      const mailResult = await sendOtpEmail(targetEmail, otp);
+      if (!mailResult.sent && mailResult.error) {
+        console.warn(`[AUTH/OTP] Mailer returned error for ${targetEmail}: ${mailResult.error}`);
+      }
+    } catch (mailErr) {
+      console.error(`[AUTH/OTP] Error sending OTP email to ${targetEmail}:`, mailErr);
+    }
 
     return NextResponse.json(
       {
